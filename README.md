@@ -8,6 +8,48 @@ It works **with** Advanced BBCode Box (ABBC3) or **without** it: if ABBC3 is dis
 Developed by **Salvo Cortesiano** for *Le Ombre della Rete 360°* (netshadows.de/ombra).
 
 ---
+<img width="2282" height="972" alt="Screenshot 2026-10-01 105105" src="https://github.com/user-attachments/assets/0e3e7367-01b1-48e4-b914-0b86ed928ddf" />
+---
+<img width="2287" height="1175" alt="Screenshot 2026-10-01 105149" src="https://github.com/user-attachments/assets/1aa8bdc3-2ee6-4d16-9ac3-998cb7d6f090" />
+---
+<img width="2278" height="1038" alt="Screenshot 2026-10-01 105158" src="https://github.com/user-attachments/assets/33546800-d74a-4a21-a8fc-15e4e70a7a9e" />
+---
+<img width="2284" height="1018" alt="Screenshot 2026-10-01 105206" src="https://github.com/user-attachments/assets/9deafe02-2f3e-4023-8961-4d637d15a219" />
+---
+<img width="1836" height="633" alt="Screenshot 2026-10-01 105312" src="https://github.com/user-attachments/assets/fd648849-7aeb-482e-860a-af1fdddca65f" />
+---
+<img width="1832" height="635" alt="Screenshot 2026-10-01 105321" src="https://github.com/user-attachments/assets/76fb517b-eafa-4f4c-869f-3807132d4924" />
+---
+<img width="1831" height="730" alt="Screenshot 2026-10-01 105401" src="https://github.com/user-attachments/assets/895f99aa-33d7-497e-a838-0fa722ac596b" />
+---
+<img width="1930" height="737" alt="Screenshot 2026-10-01 105425" src="https://github.com/user-attachments/assets/a50bd410-169f-48a7-a000-47493ad64fea" />
+---
+<img width="2036" height="756" alt="Screenshot 2026-10-01 105438" src="https://github.com/user-attachments/assets/e2f13202-f4d8-4ceb-8cc6-1d672aecc2b1" />
+---
+<img width="1830" height="885" alt="Screenshot 2026-10-01 105515" src="https://github.com/user-attachments/assets/254c2d26-d2f6-4999-93b7-fcfe56e455f7" />
+---
+<img width="1794" height="816" alt="Screenshot 2026-10-01 105529" src="https://github.com/user-attachments/assets/2146f854-d4ca-4d58-8feb-0781f7867127" />
+---
+<img width="1535" height="764" alt="Screenshot 2026-10-01 105538" src="https://github.com/user-attachments/assets/f18cef8d-076a-46a0-877b-b5686abd02d8" />
+---
+<img width="1805" height="864" alt="Screenshot 2026-10-01 105543" src="https://github.com/user-attachments/assets/33dffdf8-9891-4b78-8126-81528b26a9fa" />
+---
+<img width="1212" height="1273" alt="Screenshot 2026-10-01 105551" src="https://github.com/user-attachments/assets/157e3d2f-794f-40a5-954d-1e7bb039f61f" />
+---
+<img width="1567" height="783" alt="Screenshot 2026-10-01 105600" src="https://github.com/user-attachments/assets/f9d16f8b-ef83-46be-bb3d-2840ff9ce2e2" />
+---
+<img width="1072" height="749" alt="Screenshot 2026-10-01 105606" src="https://github.com/user-attachments/assets/db48e624-969e-44c1-a295-352d0cc3f344" />
+---
+<img width="1181" height="499" alt="Screenshot 2026-10-01 105614" src="https://github.com/user-attachments/assets/feeaeaa9-47ef-49ce-bbe5-d6d24379dc50" />
+---
+<img width="1555" height="627" alt="Screenshot 2026-10-01 105628" src="https://github.com/user-attachments/assets/e2310785-2188-41f5-a2fe-19734e0434c2" />
+---
+<img width="1665" height="688" alt="Screenshot 2026-10-01 105632" src="https://github.com/user-attachments/assets/520cde27-1f32-4c76-a455-1b7f3cb089aa" />
+---
+<img width="1818" height="493" alt="Screenshot 2026-10-01 105715" src="https://github.com/user-attachments/assets/8637435f-0e1a-479b-8348-0b020ef15876" />
+---
+<img width="1805" height="478" alt="Screenshot 2026-10-01 105729" src="https://github.com/user-attachments/assets/35b0b7c0-0633-4f94-881d-fdb053e3d24e" />
+---
 
 ## Table of Contents
 

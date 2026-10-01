@@ -1,0 +1,128 @@
+/* Editor Plus – aspetto del testo dentro l'editor visuale (riquadro interno) */
+html, body {
+	margin: 0;
+	padding: 0;
+	height: auto;
+	min-height: 100%;
+}
+
+body {
+	padding: 8px 10px;
+	font-family: "Trebuchet MS", Verdana, Helvetica, Arial, sans-serif;
+	font-size: 14px;
+	line-height: 1.45;
+	color: #28313b;
+	background: #ffffff;
+	word-wrap: break-word;
+}
+
+p, div {
+	margin: 0;
+}
+
+a {
+	color: #2f6fb3;
+}
+
+img {
+	max-width: 100%;
+}
+
+blockquote.ep-wy-quote {
+	margin: 6px 0;
+	padding: 6px 10px;
+	border-left: 3px solid #2f6fb3;
+	border-radius: 0 6px 6px 0;
+	background: #f1f5fa;
+}
+
+blockquote.ep-wy-quote[data-ep-author]:not([data-ep-author=""])::before {
+	content: attr(data-ep-author) " ha scritto:";
+	display: block;
+	margin-bottom: 4px;
+	font-size: 11px;
+	font-weight: bold;
+	color: #1f3a55;
+}
+
+code {
+	display: block;
+	padding: 6px 8px;
+	font-family: Monaco, "Courier New", monospace;
+	font-size: 12px;
+	white-space: pre-wrap;
+	border-radius: 6px;
+	background: #f3f5f8;
+}
+
+/* BBCode personalizzati: blocco con etichetta non modificabile */
+.ep-wy-bb {
+	padding: 1px 3px;
+	border: 1px dashed #b7a6e6;
+	border-radius: 5px;
+	background: rgba(123, 79, 214, 0.07);
+}
+
+.ep-wy-bb::before {
+	content: attr(data-ep-label);
+	margin-right: 4px;
+	padding: 0 4px;
+	font-family: Verdana, sans-serif;
+	font-size: 9px;
+	font-weight: bold;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	color: #ffffff;
+	border-radius: 3px;
+	background: #7b4fd6;
+	vertical-align: 1px;
+	user-select: none;
+}
+
+/* Soluzione 3: blocco con l'aspetto reale (HTML prodotto dal forum), non modificabile direttamente */
+.ep-wy-raw {
+	position: relative;
+	display: inline-block;
+	max-width: 100%;
+	margin: 6px 1px 2px;
+	padding: 6px 6px 4px;
+	vertical-align: middle;
+	cursor: pointer;
+	border: 1px dashed #b7a6e6;
+	border-radius: 7px;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ep-wy-raw:hover {
+	border-color: #7b4fd6;
+	box-shadow: 0 0 0 3px rgba(123, 79, 214, 0.15);
+}
+
+.ep-wy-raw::before {
+	content: attr(data-ep-label);
+	position: absolute;
+	top: -8px;
+	left: 8px;
+	padding: 0 5px;
+	font-family: Verdana, sans-serif;
+	font-size: 9px;
+	font-weight: bold;
+	line-height: 14px;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	color: #ffffff;
+	border-radius: 3px;
+	background: #7b4fd6;
+}
+
+/* l'anteprima non cattura i clic: il clic apre la finestra di modifica */
+.ep-wy-raw-view,
+.ep-wy-raw-view * {
+	pointer-events: none;
+}
+
+.ep-wy-raw-view img,
+.ep-wy-raw-view iframe,
+.ep-wy-raw-view video {
+	max-width: 100%;
+}

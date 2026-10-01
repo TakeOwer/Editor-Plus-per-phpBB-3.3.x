@@ -1,0 +1,6 @@
+{# Editor Plus: pulsanti aggiunti in fondo alla prima riga della barra ABBC3 #}
+<span class="ep-tools" id="ep-tools">
+	{% if S_EDITORPLUS_GHIDE and S_EDITORPLUS_GHIDE_BUTTON %}
+		<button type="button" class="abbc3_button ep-btn-ghide" data-ep-action="ghide" style="background-image:url('{{ ROOT_PATH ~ EDITORPLUS_ICON_PATH }}ghide.{{ EDITORPLUS_ICON_EXT }}');" title="{{ lang('EP_GHIDE') }}">GHide</button>
+	{% endif %}
+</span>

@@ -1,0 +1,38 @@
+{% include 'ucp_header.html' %}
+
+<form id="ucp" method="post" action="{{ U_ACTION }}">
+
+<h2>{{ lang('UCP_EDITORPLUS_TITLE') }}</h2>
+
+<div class="panel">
+	<div class="inner">
+	<p>{{ lang('UCP_EDITORPLUS_EXPLAIN') }}</p>
+
+	{% if ep_prefs %}
+	<fieldset>
+		{% for pref in ep_prefs %}
+		<dl>
+			<dt><label for="ep_{{ pref.KEY }}">{{ pref.TITLE ~ lang('COLON') }}</label><br><span>{{ pref.EXPLAIN }}</span></dt>
+			<dd>
+				<label for="ep_{{ pref.KEY }}"><input type="radio" name="ep_{{ pref.KEY }}" id="ep_{{ pref.KEY }}" value="1"{% if pref.S_ON %} checked="checked"{% endif %}> {{ lang('YES') }}</label>
+				<label for="ep_{{ pref.KEY }}_0"><input type="radio" name="ep_{{ pref.KEY }}" id="ep_{{ pref.KEY }}_0" value="0"{% if not pref.S_ON %} checked="checked"{% endif %}> {{ lang('NO') }}</label>
+			</dd>
+		</dl>
+		{% endfor %}
+	</fieldset>
+	{% else %}
+		<p>{{ lang('UCP_EDITORPLUS_NOTHING') }}</p>
+	{% endif %}
+	</div>
+</div>
+
+{% if ep_prefs %}
+<fieldset class="submit-buttons">
+	<input type="reset" value="{{ lang('RESET') }}" name="reset" class="button2">&nbsp;
+	<input type="submit" name="submit" value="{{ lang('SUBMIT') }}" class="button1">
+	{{ S_FORM_TOKEN }}
+</fieldset>
+{% endif %}
+</form>
+
+{% include 'ucp_footer.html' %}

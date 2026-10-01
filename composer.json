@@ -1,0 +1,27 @@
+{
+	"name": "salvocortesiano/editorplus",
+	"type": "phpbb-extension",
+	"description": "Editor Plus: estende la barra di Advanced BBCode Box con menu per categorie, icone Font Awesome, emoji, GHide, combo immagini, salvataggio automatico, scorciatoie, annulla/ripeti e schermo intero.",
+	"homepage": "https://netshadows.de/ombra",
+	"version": "1.0.34",
+	"time": "2026-09-27",
+	"license": "GPL-2.0-only",
+	"authors": [
+		{
+			"name": "Salvo Cortesiano",
+			"email": "info@netshadows.de",
+			"homepage": "https://netshadows.de/ombra",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=7.4.0",
+		"composer/installers": "~1.0"
+	},
+	"extra": {
+		"display-name": "Editor Plus",
+		"soft-require": {
+			"phpbb/phpbb": ">=3.3.0,<4.0.0@dev"
+		}
+	}
+}

@@ -1,0 +1,13 @@
+{# Editor Plus: combo create in ACP > Editor Plus > Combo (solo quelle accese il cui BBCode esiste sul forum) #}
+{% if EDITORPLUS_COMBOS %}
+<div class="abbc3_buttons_row ep-img-combos" style="border-top:0;">
+	{% for combo in EDITORPLUS_COMBOS %}
+		<select class="abbc3_select ep-select ep-img-combo" data-ep-tag="{{ combo.tag }}" data-ep-mode="{{ combo.mode }}" title="{{ combo.name|e('html') }}">
+			<option selected="selected" value="">{{ combo.name|e('html') }}</option>
+			{% for option in combo.options %}
+				<option value="{{ option[0]|e('html') }}">{{ option[1]|e('html') }}</option>
+			{% endfor %}
+		</select>
+	{% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,36 @@
+{# Editor Plus: codice colorato [syntax] – lo script è minuscolo e scarica le librerie solo se la pagina contiene codice #}
+{% if S_EDITORPLUS_SYNTAX_VIEW %}
+<link rel="stylesheet" href="{{ ROOT_PATH }}ext/salvocortesiano/editorplus/styles/all/theme/editorplus_syntax.css?v={{ EDITORPLUS_SYNTAX_VERSION }}">
+<script>
+	window.EditorPlusSyntaxConfig = {
+		root: '{{ ROOT_PATH|e('js') }}',
+		version: '{{ EDITORPLUS_SYNTAX_VERSION|e('js') }}',
+		theme: '{{ EDITORPLUS_SYNTAX_THEME|e('js') }}',
+		tab: {{ EDITORPLUS_SYNTAX_TAB }},
+		code: {{ S_EDITORPLUS_SYNTAX_CODE ? 'true' : 'false' }},
+		lang: {
+			copy: '{{ lang('EP_SYN_COPY')|e('js') }}',
+			copied: '{{ lang('EP_SYN_COPIED')|e('js') }}',
+			lines: '{{ lang('EP_SYN_LINES')|e('js') }}',
+			auto: '{{ lang('EP_SYN_AUTO_SHORT')|e('js') }}',
+			plain: '{{ lang('EP_SYN_PLAIN')|e('js') }}'
+		}
+	};
+</script>
+<script src="{{ ROOT_PATH }}ext/salvocortesiano/editorplus/styles/all/template/js/editorplus_syntax.js?v={{ EDITORPLUS_SYNTAX_VERSION }}"></script>
+{% endif %}
+{# Editor Plus: formule [math] e [imath] – KaTeX si scarica solo se la pagina contiene formule #}
+{% if S_EDITORPLUS_MATH_VIEW %}
+<style>
+	.ep-math-block { margin: .6em 0; overflow-x: auto; overflow-y: hidden; text-align: center; }
+	.ep-math-inline { white-space: nowrap; }
+	.ep-math-error { font-family: Consolas, "Liberation Mono", Menlo, monospace; color: #b3261e; }
+</style>
+<script>
+	window.EditorPlusMathConfig = {
+		root: '{{ ROOT_PATH|e('js') }}',
+		version: '{{ EDITORPLUS_MATH_ASSET|e('js') }}'
+	};
+</script>
+<script src="{{ ROOT_PATH }}ext/salvocortesiano/editorplus/styles/all/template/js/editorplus_math.js?v={{ EDITORPLUS_MATH_ASSET }}"></script>
+{% endif %}

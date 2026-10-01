@@ -1,0 +1,318 @@
+{% include 'overall_header.html' %}
+{% INCLUDECSS '@salvocortesiano_editorplus/editorplus_acp.css' %}
+
+{% macro toggle(name, value) -%}
+	<label><input type="radio" class="radio" name="{{ name }}" id="{{ name }}" value="1"{% if value %} checked="checked"{% endif %}> {{ lang('YES') }}</label>
+	<label><input type="radio" class="radio" name="{{ name }}" value="0"{% if not value %} checked="checked"{% endif %}> {{ lang('NO') }}</label>
+{%- endmacro %}
+
+<h1>{{ lang('ACP_EDITORPLUS_TITLE') }}</h1>
+
+<div class="ep-badges">
+	<span class="ep-badge ep-badge-blue"><span>{{ lang('EDITORPLUS_BADGE_VERSION') }}</span>{{ EDITORPLUS_VERSION }}</span>
+	<span class="ep-badge ep-badge-purple"><span>PHP</span>{{ EDITORPLUS_PHP_VERSION }}</span>
+	<span class="ep-badge ep-badge-teal"><span>phpBB</span>{{ EDITORPLUS_PHPBB_VERSION }}</span>
+	<span class="ep-badge ep-badge-orange"><span>ABBC3</span>{{ EDITORPLUS_ABBC3_VERSION }}</span>
+	<span class="ep-badge ep-badge-green"><span>{{ lang('EDITORPLUS_BADGE_LICENSE') }}</span>GPL-2.0</span>
+</div>
+
+<p>{{ lang('EDITORPLUS_ACP_EXPLAIN') }}</p>
+
+{% if not S_EDITORPLUS_ABBC3_FULL %}
+	<div class="ep-abbc3-notice ep-abbc3-{{ EDITORPLUS_ABBC3_STATE }}">
+		<i class="icon fa-lightbulb-o fa-fw" aria-hidden="true"></i>
+		<div>
+			<strong>{{ lang('EDITORPLUS_ABBC3_NOTICE_TITLE') }}</strong><br>
+			{{ EDITORPLUS_ABBC3_NOTICE }}
+		</div>
+	</div>
+{% endif %}
+
+{% if S_ERROR %}
+	<div class="errorbox"><p>{{ ERROR_MSG }}</p></div>
+{% endif %}
+
+{% if S_EDITORPLUS_FLASH_ON %}
+	<div class="ep-notice"><i class="icon fa-info-circle fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_FLASH_NOTICE') }}</div>
+{% endif %}
+{% if not S_EDITORPLUS_SVG_ICONS %}
+	<div class="ep-notice"><i class="icon fa-lightbulb-o fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_SVG_NOTICE') }}</div>
+{% endif %}
+
+<fieldset class="ep-diag">
+	<legend>{{ lang('EDITORPLUS_DIAG') }}</legend>
+	<p>{{ lang('EDITORPLUS_DIAG_EXPLAIN') }}</p>
+	<table class="table1 ep-diag-table">
+		<tbody>
+		{% for d in ep_diag %}
+			<tr>
+				<td class="ep-diag-icon">{% if d.S_OK %}<i class="icon fa-check-circle fa-fw ep-ok" aria-hidden="true"></i>{% elseif d.S_WARN %}<i class="icon fa-exclamation-circle fa-fw ep-warn" aria-hidden="true"></i>{% else %}<i class="icon fa-times-circle fa-fw ep-bad" aria-hidden="true"></i>{% endif %}</td>
+				<td><strong>{{ d.LABEL }}</strong></td>
+				<td>{{ d.DETAIL }}</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</fieldset>
+
+<form id="editorplus_settings" method="post" action="{{ U_ACTION }}">
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_LEGEND_GHIDE') }}</legend>
+		<input type="hidden" name="editorplus_ghide_present" value="1">
+		<dl>
+			<dt><label for="editorplus_ghide">{{ lang('EDITORPLUS_GHIDE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_GHIDE_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_ghide', S_EDITORPLUS_GHIDE) }}<br>
+				<span class="ep-ghide-source {{ S_EDITORPLUS_GHIDE_FOUND ? 'ep-ok' : 'ep-bad' }}"><i class="icon {{ S_EDITORPLUS_GHIDE_FOUND ? 'fa-check-circle' : 'fa-times-circle' }} fa-fw" aria-hidden="true"></i> {{ EDITORPLUS_GHIDE_SOURCE }}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_ghide_button">{{ lang('EDITORPLUS_GHIDE_BUTTON') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_GHIDE_BUTTON_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_ghide_button', S_EDITORPLUS_GHIDE_BUTTON) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_ghide_default">{{ lang('EDITORPLUS_GHIDE_DEFAULT') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_GHIDE_DEFAULT_EXPLAIN') }}</span></dt>
+			<dd>
+				<select id="editorplus_ghide_default" name="editorplus_ghide_default">
+					{% for opt in ['author', 'me', 'both'] %}
+						<option value="{{ opt }}"{% if EDITORPLUS_GHIDE_DEFAULT == opt %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_GHIDE_DEFAULT_' ~ opt|upper) }}</option>
+					{% endfor %}
+				</select>
+			</dd>
+		</dl>
+		{% if not S_EDITORPLUS_GHIDE_DETECTED or S_EDITORPLUS_GHIDE_FORCE %}
+		<dl>
+			<dt><label for="editorplus_ghide_force">{{ lang('EDITORPLUS_GHIDE_FORCE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_GHIDE_FORCE_EXPLAIN') }}</span></dt>
+			<dd>
+				{{ _self.toggle('editorplus_ghide_force', S_EDITORPLUS_GHIDE_FORCE) }}
+			</dd>
+		</dl>
+		{% endif %}
+		<dl>
+			<dt><label for="editorplus_ghide_groups">{{ lang('EDITORPLUS_GHIDE_GROUPS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_GHIDE_GROUPS_EXPLAIN') }}</span></dt>
+			<dd>
+				<select name="editorplus_ghide_groups[]" id="editorplus_ghide_groups" multiple="multiple" size="10" class="ep-groups">
+					{% for group in ghide_groups %}
+						<option value="{{ group.ID }}"{% if group.S_SPECIAL %} class="sep"{% endif %}{% if group.S_SELECTED %} selected="selected"{% endif %}>{{ group.NAME }} ({{ group.ID }})</option>
+					{% endfor %}
+				</select>
+				<p class="ep-preview-line">
+					<strong>{{ lang('EDITORPLUS_GHIDE_SELECTED') ~ lang('COLON') }}</strong>
+					<span id="ep_ghide_text">{{ EDITORPLUS_GHIDE_TEXT ?: lang('EDITORPLUS_GHIDE_NONE') }}</span><br>
+					<samp id="ep_ghide_code">[ghide=ID{{ EDITORPLUS_GHIDE_CODE ? '|' ~ EDITORPLUS_GHIDE_CODE }}]</samp>
+				</p>
+			</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_LEGEND_SYNTAX') }}</legend>
+		<dl>
+			<dt><label for="editorplus_syntax">{{ lang('EDITORPLUS_SYNTAX') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_SYNTAX_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_syntax', S_EDITORPLUS_SYNTAX) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_syntax_theme">{{ lang('EDITORPLUS_SYNTAX_THEME') ~ lang('COLON') }}</label></dt>
+			<dd>
+				<select id="editorplus_syntax_theme" name="editorplus_syntax_theme">
+					<option value="light"{% if EDITORPLUS_SYNTAX_THEME == 'light' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_SYNTAX_THEME_LIGHT') }}</option>
+					<option value="dark"{% if EDITORPLUS_SYNTAX_THEME == 'dark' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_SYNTAX_THEME_DARK') }}</option>
+				</select>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_syntax_tab">{{ lang('EDITORPLUS_SYNTAX_TAB') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_SYNTAX_TAB_EXPLAIN') }}</span></dt>
+			<dd>
+				<select id="editorplus_syntax_tab" name="editorplus_syntax_tab">
+					{% for n in [2, 4, 8] %}<option value="{{ n }}"{% if EDITORPLUS_SYNTAX_TAB == n %} selected="selected"{% endif %}>{{ n }}</option>{% endfor %}
+				</select>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_syntax_code">{{ lang('EDITORPLUS_SYNTAX_CODE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_SYNTAX_CODE_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_syntax_code', S_EDITORPLUS_SYNTAX_CODE) }}</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_LEGEND_COLOR') }}</legend>
+		<dl>
+			<dt><label for="editorplus_color">{{ lang('EDITORPLUS_COLOR') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_COLOR_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_color', S_EDITORPLUS_COLOR) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_color_classic">{{ lang('EDITORPLUS_COLOR_CLASSIC') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_COLOR_CLASSIC_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_color_classic', S_EDITORPLUS_COLOR_CLASSIC) }}</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_LEGEND_MATH') }}</legend>
+		<dl>
+			<dt><label for="editorplus_math">{{ lang('EDITORPLUS_MATH') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_MATH_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_math', S_EDITORPLUS_MATH) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_calc">{{ lang('EDITORPLUS_CALC') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_CALC_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_calc', S_EDITORPLUS_CALC) }}</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_LEGEND_BAR') }}</legend>
+		<dl>
+			<dt><label for="editorplus_font_select">{{ lang('EDITORPLUS_FONT_SELECT') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_FONT_SELECT_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_font_select', S_EDITORPLUS_FONT_SELECT) }}{% if not S_EDITORPLUS_ABBC3_FULL %}<br><span class="ep-needs-abbc3">{{ lang('EDITORPLUS_NEEDS_ABBC3') }}</span>{% endif %}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_image_combos">{{ lang('EDITORPLUS_IMAGE_COMBOS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMAGE_COMBOS_EXPLAIN') }}</span></dt>
+			<dd>
+				{{ _self.toggle('editorplus_image_combos', S_EDITORPLUS_IMAGE_COMBOS) }}<br>
+				<a href="{{ U_EDITORPLUS_COMBOS }}" class="ep-manage-link"><i class="icon fa-list fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_COMBOS_MANAGE', EDITORPLUS_COMBOS_COUNT) }}</a>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_categories">{{ lang('EDITORPLUS_CATEGORIES') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_CATEGORIES_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_categories', S_EDITORPLUS_CATEGORIES) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_category_map">{{ lang('EDITORPLUS_CATEGORY_MAP') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_CATEGORY_MAP_EXPLAIN') }}</span></dt>
+			<dd>
+				<p class="ep-cat-intro">{{ lang('EDITORPLUS_CAT_EDITOR') }}</p>
+				<div id="ep_cat_editor" class="ep-cat-editor" hidden
+					data-bbcodes="{{ EDITORPLUS_BBCODES_JSON|e('html') }}"
+					data-lang="{{ {'editor': lang('EDITORPLUS_CAT_EDITOR'), 'newName': lang('EDITORPLUS_CAT_NEW_NAME'), 'del': lang('EDITORPLUS_CAT_DELETE'), 'pool': lang('EDITORPLUS_CAT_POOL'), 'asText': lang('EDITORPLUS_CAT_AS_TEXT'), 'asVisual': lang('EDITORPLUS_CAT_AS_VISUAL'), 'missing': lang('EDITORPLUS_CAT_MISSING')}|json_encode|e('html') }}"></div>
+				<textarea id="editorplus_category_map" name="editorplus_category_map" rows="8" cols="60" class="ep-textarea">{{ EDITORPLUS_CATEGORY_MAP|e('html') }}</textarea>
+				<p class="ep-cat-tools">
+					<button type="button" class="button2" id="ep_cat_add"><i class="icon fa-plus fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_CAT_ADD') }}</button>
+					<button type="button" class="button2" id="ep_cat_toggle">{{ lang('EDITORPLUS_CAT_AS_TEXT') }}</button>
+				</p>
+				<input class="button2" type="submit" name="reset_categories" value="{{ lang('EDITORPLUS_CATEGORIES_RESET') }}">
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_hidden_tags">{{ lang('EDITORPLUS_HIDDEN_TAGS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_HIDDEN_TAGS_EXPLAIN') }}</span></dt>
+			<dd><input class="inputbox" type="text" id="editorplus_hidden_tags" name="editorplus_hidden_tags" value="{{ EDITORPLUS_HIDDEN_TAGS }}" maxlength="1000" size="60"></dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_LEGEND_INSERT') }}</legend>
+		<dl>
+			<dt><label for="editorplus_fa">{{ lang('EDITORPLUS_FA') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_FA_EXPLAIN') }}</span>
+				{% if not S_EDITORPLUS_FA_BBCODE %}<br><span class="error">{{ lang('EDITORPLUS_FA_MISSING') }}</span>{% endif %}</dt>
+			<dd>{{ _self.toggle('editorplus_fa', S_EDITORPLUS_FA) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_emoji">{{ lang('EDITORPLUS_EMOJI') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_EMOJI_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_emoji', S_EDITORPLUS_EMOJI) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_smilies">{{ lang('EDITORPLUS_SMILIES') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_SMILIES_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_smilies', S_EDITORPLUS_SMILIES) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_hide_smiley_box">{{ lang('EDITORPLUS_HIDE_SMILEY_BOX') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_HIDE_SMILEY_BOX_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_hide_smiley_box', S_EDITORPLUS_HIDE_SMILEY_BOX) }}</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_LEGEND_WRITING') }}</legend>
+		<dl>
+			<dt><label for="editorplus_autosave">{{ lang('EDITORPLUS_AUTOSAVE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_AUTOSAVE_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_autosave', S_EDITORPLUS_AUTOSAVE) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_autosave_days">{{ lang('EDITORPLUS_AUTOSAVE_DAYS') ~ lang('COLON') }}</label></dt>
+			<dd><input class="inputbox autowidth" type="number" min="1" max="90" id="editorplus_autosave_days" name="editorplus_autosave_days" value="{{ EDITORPLUS_AUTOSAVE_DAYS }}"> {{ lang('EDITORPLUS_DAYS') }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_shortcuts">{{ lang('EDITORPLUS_SHORTCUTS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_SHORTCUTS_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_shortcuts', S_EDITORPLUS_SHORTCUTS) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_undo">{{ lang('EDITORPLUS_UNDO') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_UNDO_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_undo', S_EDITORPLUS_UNDO) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_fullscreen">{{ lang('EDITORPLUS_FULLSCREEN') ~ lang('COLON') }}</label></dt>
+			<dd>{{ _self.toggle('editorplus_fullscreen', S_EDITORPLUS_FULLSCREEN) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_counter">{{ lang('EDITORPLUS_COUNTER') ~ lang('COLON') }}</label></dt>
+			<dd>{{ _self.toggle('editorplus_counter', S_EDITORPLUS_COUNTER) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_autogrow">{{ lang('EDITORPLUS_AUTOGROW') ~ lang('COLON') }}</label></dt>
+			<dd>{{ _self.toggle('editorplus_autogrow', S_EDITORPLUS_AUTOGROW) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_live_preview">{{ lang('EDITORPLUS_LIVE_PREVIEW') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_LIVE_PREVIEW_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_live_preview', S_EDITORPLUS_LIVE_PREVIEW) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_combo_preview">{{ lang('EDITORPLUS_COMBO_PREVIEW') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_COMBO_PREVIEW_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_combo_preview', S_EDITORPLUS_COMBO_PREVIEW) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_drop_upload">{{ lang('EDITORPLUS_DROP_UPLOAD') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_DROP_UPLOAD_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_drop_upload', S_EDITORPLUS_DROP_UPLOAD) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_search_replace">{{ lang('EDITORPLUS_SEARCH_REPLACE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_SEARCH_REPLACE_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_search_replace', S_EDITORPLUS_SEARCH_REPLACE) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_live_format">{{ lang('EDITORPLUS_LIVE_FORMAT') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_LIVE_FORMAT_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_live_format', S_EDITORPLUS_LIVE_FORMAT) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_wysiwyg">{{ lang('EDITORPLUS_WYSIWYG') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_WYSIWYG_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_wysiwyg', S_EDITORPLUS_WYSIWYG) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_wysiwyg_real">{{ lang('EDITORPLUS_WYSIWYG_REAL') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_WYSIWYG_REAL_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_wysiwyg_real', S_EDITORPLUS_WYSIWYG_REAL) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_options_menu">{{ lang('EDITORPLUS_OPTIONS_MENU') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_OPTIONS_MENU_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_options_menu', S_EDITORPLUS_OPTIONS_MENU) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_info_bar">{{ lang('EDITORPLUS_INFO_BAR') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_INFO_BAR_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_info_bar', S_EDITORPLUS_INFO_BAR) }}</dd>
+		</dl>
+		<p class="ep-prefs-note"><i class="icon fa-user fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_USER_PREFS_NOTICE') }}</p>
+	</fieldset>
+
+	<fieldset class="submit-buttons">
+		<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}">&nbsp;
+		<input class="button2" type="reset" id="reset" name="reset" value="{{ lang('RESET') }}">
+		{{ S_FORM_TOKEN }}
+	</fieldset>
+</form>
+
+<p class="ep-credits">Editor Plus {{ EDITORPLUS_VERSION }} · {{ lang('EDITORPLUS_DEVELOPED_BY') }} <a href="https://netshadows.de/ombra" target="_blank" rel="noopener">Salvo Cortesiano</a> · Le Ombre della Rete 360°</p>
+
+<script>
+	(function () {
+		var list = document.getElementById('editorplus_ghide_groups');
+		if (!list) {
+			return;
+		}
+		var text = document.getElementById('ep_ghide_text');
+		var code = document.getElementById('ep_ghide_code');
+		var none = '{{ lang('EDITORPLUS_GHIDE_NONE')|e('js') }}';
+		function update() {
+			var chosen = Array.prototype.filter.call(list.options, function (o) { return o.selected; });
+			text.textContent = chosen.length ? chosen.map(function (o) { return o.textContent.trim(); }).join(', ') : none;
+			code.textContent = '[ghide=ID' + (chosen.length ? '|' + chosen.map(function (o) { return o.value; }).join(',') : '') + ']';
+		}
+		list.addEventListener('change', update);
+
+		document.getElementById('editorplus_settings').addEventListener('reset', function () { setTimeout(update, 0); });
+	})();
+</script>
+
+{% INCLUDEJS '@salvocortesiano_editorplus/editorplus_catedit.js' %}
+{% include 'overall_footer.html' %}

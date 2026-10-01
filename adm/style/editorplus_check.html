@@ -1,0 +1,213 @@
+{% include 'overall_header.html' %}
+{% INCLUDECSS '@salvocortesiano_editorplus/editorplus_acp.css' %}
+
+<h1>{{ lang('ACP_EDITORPLUS_CHECK') }}</h1>
+
+<div class="ep-badges">
+	<span class="ep-badge ep-badge-blue"><span>{{ lang('EDITORPLUS_BADGE_VERSION') }}</span>{{ EDITORPLUS_VERSION }}</span>
+	<span class="ep-badge ep-badge-purple"><span>PHP</span>{{ EDITORPLUS_PHP_VERSION }}</span>
+	<span class="ep-badge ep-badge-teal"><span>phpBB</span>{{ EDITORPLUS_PHPBB_VERSION }}</span>
+	<span class="ep-badge ep-badge-orange"><span>ABBC3</span>{{ EDITORPLUS_ABBC3_VERSION }}</span>
+	<span class="ep-badge ep-badge-green"><span>{{ lang('EDITORPLUS_BADGE_LICENSE') }}</span>GPL-2.0</span>
+</div>
+
+<p>{{ lang('EDITORPLUS_CHK_EXPLAIN') }}</p>
+
+<div id="ep-check-summary">
+{% if CHECK_FAIL > 0 %}
+	<div class="errorbox"><p>{{ lang('EDITORPLUS_CHK_SUMMARY_FAIL', CHECK_FAIL, CHECK_WARN) }}</p></div>
+{% elseif CHECK_WARN > 0 %}
+	<div class="ep-check-warnbox"><p>{{ lang('EDITORPLUS_CHK_SUMMARY_WARN', CHECK_WARN, CHECK_OK) }}</p></div>
+{% else %}
+	<div class="successbox"><p>{{ lang('EDITORPLUS_CHK_SUMMARY_OK', CHECK_OK) }}</p></div>
+{% endif %}
+</div>
+
+{% for group in loops.checkgroup %}
+<fieldset class="ep-check-group">
+	<legend>{{ group.NAME }}</legend>
+	<table class="table1 ep-check-table">
+		<tbody>
+		{% for item in group.item %}
+			<tr class="ep-check-row ep-check-{{ item.STATUS }}" data-status="{{ item.STATUS }}">
+				<td class="ep-check-label"><strong>{{ item.LABEL }}</strong></td>
+				<td class="ep-check-status">
+					{% if item.STATUS == 'ok' %}<span class="ep-st ep-st-ok"><i class="icon fa-check-circle fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_CHK_OK') }}</span>
+					{% elseif item.STATUS == 'warn' %}<span class="ep-st ep-st-warn"><i class="icon fa-exclamation-triangle fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_CHK_WARN') }}</span>
+					{% else %}<span class="ep-st ep-st-fail"><i class="icon fa-times-circle fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_CHK_FAIL') }}</span>{% endif %}
+				</td>
+				<td class="ep-check-detail">
+					{{ item.DETAIL }}
+					{% if item.HINT %}<br><span class="ep-check-hint">{{ item.HINT }}</span>{% endif %}
+				</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</fieldset>
+{% endfor %}
+
+<fieldset class="ep-check-group" id="ep-live">
+	<legend>{{ lang('EDITORPLUS_CHK_LIVE') }}</legend>
+	<p>{{ lang('EDITORPLUS_CHK_LIVE_EXPLAIN') }}</p>
+	<table class="table1 ep-check-table">
+		<tbody>
+			<tr class="ep-check-row" data-live="bar">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_CHK_LIVE_BAR') }}</strong></td>
+				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
+				<td class="ep-check-detail">{{ U_LIVE_POSTING ? lang('EDITORPLUS_CHK_LIVE_BAR_EXPLAIN') : lang('EDITORPLUS_CHK_LIVE_NO_FORUM') }}</td>
+			</tr>
+			<tr class="ep-check-row" data-live="render">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_CHK_LIVE_RENDER') }}</strong></td>
+				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
+				<td class="ep-check-detail">{{ lang('EDITORPLUS_CHK_LIVE_RENDER_EXPLAIN') }}</td>
+			</tr>
+			<tr class="ep-check-row" data-live="math">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_CHK_LIVE_MATH') }}</strong></td>
+				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
+				<td class="ep-check-detail">{{ S_MATH_ON ? lang('EDITORPLUS_CHK_LIVE_MATH_EXPLAIN') : lang('EDITORPLUS_CHK_OFF') }}</td>
+			</tr>
+			<tr class="ep-check-row" data-live="calc">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_CHK_LIVE_CALC') }}</strong></td>
+				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
+				<td class="ep-check-detail">{{ S_CALC_ON ? lang('EDITORPLUS_CHK_LIVE_CALC_EXPLAIN') : lang('EDITORPLUS_CHK_OFF') }}</td>
+			</tr>
+			<tr class="ep-check-row" data-live="draft">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_CHK_LIVE_DRAFT') }}</strong></td>
+				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
+				<td class="ep-check-detail">{{ lang('EDITORPLUS_CHK_LIVE_DRAFT_EXPLAIN') }}</td>
+			</tr>
+		</tbody>
+	</table>
+	<p class="ep-check-actions">
+		<button type="button" class="button1" id="ep-live-run"><i class="icon fa-play fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_CHK_LIVE_RUN') }}</button>
+		<button type="button" class="button2" id="ep-copy-report"><i class="icon fa-clipboard fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_CHK_COPY') }}</button>
+		<a class="button2" href="{{ U_ACTION }}"><i class="icon fa-refresh fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_CHK_RERUN') }}</a>
+		<span id="ep-copy-done" class="ep-check-hint" hidden>{{ lang('EDITORPLUS_CHK_COPIED') }}</span>
+	</p>
+	<iframe id="ep-live-frame" title="{{ lang('EDITORPLUS_CHK_LIVE_BAR') }}" tabindex="-1" aria-hidden="true"></iframe>
+</fieldset>
+
+<fieldset class="ep-check-group" id="ep-katex">
+	<legend>{{ lang('EDITORPLUS_KATEX_LEGEND') }}</legend>
+	<p>{{ lang('EDITORPLUS_KATEX_EXPLAIN') }}</p>
+	<table class="table1 ep-check-table">
+		<tbody>
+			<tr class="ep-check-row ep-check-ok">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_KATEX_INSTALLED') }}</strong></td>
+				<td class="ep-check-detail" id="ep-katex-installed">{{ KATEX_INSTALLED ?: '–' }}</td>
+			</tr>
+			<tr class="ep-check-row">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_KATEX_AVAILABLE') }}</strong></td>
+				<td class="ep-check-detail" id="ep-katex-offer">{{ lang('EDITORPLUS_KATEX_NOT_CHECKED') }}</td>
+			</tr>
+			<tr class="ep-check-row" id="ep-katex-stage-row"{% if not KATEX_STAGED %} hidden{% endif %}>
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_KATEX_STAGED') }}</strong></td>
+				<td class="ep-check-detail"><span id="ep-katex-staged">{{ KATEX_STAGED }}</span> — <span id="ep-katex-test">{{ lang('EDITORPLUS_KATEX_TEST_WAIT') }}</span></td>
+			</tr>
+		</tbody>
+	</table>
+	<p class="ep-check-actions">
+		<button type="button" class="button2" id="ep-katex-check"><i class="icon fa-search fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_KATEX_CHECK') }}</button>
+		<button type="button" class="button1" id="ep-katex-activate" hidden disabled><i class="icon fa-check fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_KATEX_ACTIVATE') }}</button>
+		<button type="button" class="button2" id="ep-katex-discard"{% if not KATEX_STAGED %} hidden{% endif %}><i class="icon fa-trash fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_KATEX_DISCARD') }}</button>
+		<button type="button" class="button2" id="ep-katex-restore"{% if not KATEX_BACKUP %} hidden{% endif %} data-version="{{ KATEX_BACKUP }}"><i class="icon fa-undo fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_KATEX_RESTORE', KATEX_BACKUP) }}</button>
+		<span id="ep-katex-msg" class="ep-check-hint"></span>
+	</p>
+	<div id="ep-kprog" class="ep-kprog" hidden role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+		<div class="ep-kprog-head">
+			<strong id="ep-kprog-phase"></strong>
+			<span id="ep-kprog-step" class="ep-kprog-step"></span>
+			<span class="ep-raw-space"></span>
+			<strong id="ep-kprog-pct">0%</strong>
+		</div>
+		<div class="ep-kprog-track"><div class="ep-kprog-bar" id="ep-kprog-bar"></div></div>
+		<div id="ep-kprog-detail" class="ep-kprog-detail"></div>
+	</div>
+	<iframe id="ep-katex-frame" title="KaTeX" tabindex="-1" aria-hidden="true"></iframe>
+</fieldset>
+
+<p class="ep-credits">Editor Plus {{ EDITORPLUS_VERSION }} · {{ lang('EDITORPLUS_DEVELOPED_BY') }} <a href="https://netshadows.de/ombra" target="_blank" rel="noopener">Salvo Cortesiano</a> · Le Ombre della Rete 360°</p>
+
+<script>
+
+window.EditorPlusCheck = {
+	L: {
+		ok: '{{ lang('EDITORPLUS_CHK_OK')|e('js') }}',
+		warn: '{{ lang('EDITORPLUS_CHK_WARN')|e('js') }}',
+		fail: '{{ lang('EDITORPLUS_CHK_FAIL')|e('js') }}',
+		running: '{{ lang('EDITORPLUS_CHK_LIVE_RUNNING')|e('js') }}',
+		barOk: '{{ lang('EDITORPLUS_CHK_LIVE_BAR_OK')|e('js') }}',
+		barNone: '{{ lang('EDITORPLUS_CHK_LIVE_BAR_NONE')|e('js') }}',
+		barNoScript: '{{ lang('EDITORPLUS_CHK_LIVE_BAR_NOSCRIPT')|e('js') }}',
+		barErrors: '{{ lang('EDITORPLUS_CHK_LIVE_BAR_ERRORS')|e('js') }}',
+		barOld: '{{ lang('EDITORPLUS_CHK_LIVE_BAR_OLD')|e('js') }}',
+		renderOk: '{{ lang('EDITORPLUS_CHK_LIVE_RENDER_OK')|e('js') }}',
+		renderFail: '{{ lang('EDITORPLUS_CHK_LIVE_RENDER_FAIL')|e('js') }}',
+		draftOk: '{{ lang('EDITORPLUS_CHK_LIVE_DRAFT_OK')|e('js') }}',
+		draftFail: '{{ lang('EDITORPLUS_CHK_LIVE_DRAFT_FAIL')|e('js') }}',
+		noForum: '{{ lang('EDITORPLUS_CHK_LIVE_NO_FORUM')|e('js') }}',
+		reportTitle: '{{ lang('EDITORPLUS_CHK_REPORT_TITLE')|e('js') }}',
+		barFrame: '{{ lang('EDITORPLUS_CHK_LIVE_BAR_FRAME')|e('js') }}',
+		draftSpecial: '{{ lang('EDITORPLUS_CHK_LIVE_DRAFT_SPECIAL')|e('js') }}',
+		serverSaid: '{{ lang('EDITORPLUS_CHK_LIVE_SERVER_SAID')|e('js') }}',
+		barNoMath: '{{ lang('EDITORPLUS_CHK_LIVE_BAR_NO_MATH')|e('js') }}',
+		mathOk: '{{ lang('EDITORPLUS_CHK_LIVE_MATH_OK')|e('js') }}',
+		mathFail: '{{ lang('EDITORPLUS_CHK_LIVE_MATH_FAIL')|e('js') }}',
+		mathFonts: '{{ lang('EDITORPLUS_CHK_LIVE_MATH_FONTS')|e('js') }}',
+		calcOk: '{{ lang('EDITORPLUS_CHK_LIVE_CALC_OK')|e('js') }}',
+		calcFail: '{{ lang('EDITORPLUS_CHK_LIVE_CALC_FAIL')|e('js') }}',
+		off: '{{ lang('EDITORPLUS_CHK_OFF')|e('js') }}',
+		kNone: '{{ lang('EDITORPLUS_KATEX_UP_TO_DATE')|e('js') }}',
+		kSame: '{{ lang('EDITORPLUS_KATEX_OFFER_SAME')|e('js') }}',
+		kOther: '{{ lang('EDITORPLUS_KATEX_OFFER_OTHER')|e('js') }}',
+		kOtherWarn: '{{ lang('EDITORPLUS_KATEX_OTHER_WARN')|e('js') }}',
+		kPrepare: '{{ lang('EDITORPLUS_KATEX_PREPARE')|e('js') }}',
+		kWorking: '{{ lang('EDITORPLUS_KATEX_WORKING')|e('js') }}',
+		kTestOk: '{{ lang('EDITORPLUS_KATEX_TEST_OK')|e('js') }}',
+		kTestFail: '{{ lang('EDITORPLUS_KATEX_TEST_FAIL')|e('js') }}',
+		kActivated: '{{ lang('EDITORPLUS_KATEX_ACTIVATED')|e('js') }}',
+		kRestored: '{{ lang('EDITORPLUS_KATEX_RESTORED')|e('js') }}',
+		kDiscarded: '{{ lang('EDITORPLUS_KATEX_DISCARDED')|e('js') }}',
+		kConfirmRestore: '{{ lang('EDITORPLUS_KATEX_CONFIRM_RESTORE')|e('js') }}',
+		kConfirmOther: '{{ lang('EDITORPLUS_KATEX_CONFIRM_OTHER')|e('js') }}',
+		kStep: '{{ lang('EDITORPLUS_KATEX_STEP')|e('js') }}',
+		kFiles: '{{ lang('EDITORPLUS_KATEX_FILES')|e('js') }}',
+		kBytes: '{{ lang('EDITORPLUS_KATEX_BYTES')|e('js') }}',
+		kFormulas: '{{ lang('EDITORPLUS_KATEX_FORMULAS')|e('js') }}',
+		kDone: '{{ lang('EDITORPLUS_KATEX_DONE')|e('js') }}',
+		kFailedAt: '{{ lang('EDITORPLUS_KATEX_FAILED_AT')|e('js') }}',
+		decimal: '{{ lang('EP_CALC_DECIMAL')|e('js') }}',
+		phase: {
+			check: '{{ lang('EDITORPLUS_KATEX_PH_CHECK')|e('js') }}',
+			download: '{{ lang('EDITORPLUS_KATEX_PH_DOWNLOAD')|e('js') }}',
+			verify: '{{ lang('EDITORPLUS_KATEX_PH_VERIFY')|e('js') }}',
+			extract: '{{ lang('EDITORPLUS_KATEX_PH_EXTRACT')|e('js') }}',
+			stage: '{{ lang('EDITORPLUS_KATEX_PH_STAGE')|e('js') }}',
+			test: '{{ lang('EDITORPLUS_KATEX_PH_TEST')|e('js') }}',
+			backup: '{{ lang('EDITORPLUS_KATEX_PH_BACKUP')|e('js') }}',
+			install: '{{ lang('EDITORPLUS_KATEX_PH_INSTALL')|e('js') }}'
+		}
+	},
+	CFG: {
+		expected: '{{ EDITORPLUS_EXPECTED_VERSION|e('js') }}',
+		posting: '{{ U_LIVE_POSTING|e('js') }}'.replace(/&amp;/g, '&'),
+		render: '{{ U_LIVE_RENDER|e('js') }}'.replace(/&amp;/g, '&'),
+		draft: '{{ U_LIVE_DRAFT|e('js') }}'.replace(/&amp;/g, '&'),
+		renderHash: '{{ LIVE_RENDER_HASH|e('js') }}',
+		draftHash: '{{ LIVE_DRAFT_HASH|e('js') }}',
+		time: '{{ CHECK_TIME|e('js') }}',
+		mathOn: {{ S_MATH_ON ? 'true' : 'false' }},
+		calcOn: {{ S_CALC_ON ? 'true' : 'false' }},
+		colorOn: {{ S_COLOR_ON ? 'true' : 'false' }},
+		katexHash: '{{ KATEX_HASH|e('js') }}',
+		katexActive: '{{ U_KATEX_ACTIVE|e('js') }}',
+		katexStaging: '{{ U_KATEX_STAGING|e('js') }}',
+		calcEngine: '{{ U_CALC_ENGINE|e('js') }}'.replace(/&amp;/g, '&'),
+		action: '{{ U_ACTION|e('js') }}'.replace(/&amp;/g, '&')
+	}
+};
+</script>
+{% INCLUDEJS '@salvocortesiano_editorplus/editorplus_check.js?v=' ~ EDITORPLUS_EXPECTED_VERSION %}
+
+{% include 'overall_footer.html' %}

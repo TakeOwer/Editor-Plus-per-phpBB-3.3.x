@@ -1,0 +1,169 @@
+{% include 'overall_header.html' %}
+{% INCLUDECSS '@salvocortesiano_editorplus/editorplus_acp.css' %}
+
+<h1>{{ lang('ACP_EDITORPLUS_COMBOS') }}</h1>
+
+<div class="ep-badges">
+	<span class="ep-badge ep-badge-blue"><span>{{ lang('EDITORPLUS_BADGE_VERSION') }}</span>{{ EDITORPLUS_VERSION }}</span>
+	<span class="ep-badge ep-badge-purple"><span>PHP</span>{{ EDITORPLUS_PHP_VERSION }}</span>
+	<span class="ep-badge ep-badge-teal"><span>phpBB</span>{{ EDITORPLUS_PHPBB_VERSION }}</span>
+	<span class="ep-badge ep-badge-orange"><span>ABBC3</span>{{ EDITORPLUS_ABBC3_VERSION }}</span>
+	<span class="ep-badge ep-badge-green"><span>{{ lang('EDITORPLUS_BADGE_LICENSE') }}</span>GPL-2.0</span>
+</div>
+
+{% if S_COMBO_FORM %}
+	{# ---------------- Creazione / modifica ---------------- #}
+	<p>{{ lang('EDITORPLUS_COMBO_FORM_EXPLAIN') }}</p>
+
+	{% if S_ERROR %}
+		<div class="errorbox"><p>{{ ERROR_MSG }}</p></div>
+	{% endif %}
+
+	<form id="editorplus_combo" method="post" action="{{ U_ACTION }}">
+		<fieldset>
+			<legend>{{ S_COMBO_EDIT ? lang('EDITORPLUS_COMBO_EDIT') : lang('EDITORPLUS_COMBO_ADD') }}</legend>
+			<dl>
+				<dt><label for="combo_name">{{ lang('EDITORPLUS_COMBO_NAME') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_COMBO_NAME_EXPLAIN') }}</span></dt>
+				<dd><input class="inputbox" type="text" id="combo_name" name="combo_name" value="{{ COMBO_NAME|e('html') }}" maxlength="60" size="40"></dd>
+			</dl>
+			<dl>
+				<dt><label for="combo_tag">{{ lang('EDITORPLUS_COMBO_BBCODE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_COMBO_BBCODE_EXPLAIN') }}</span></dt>
+				<dd>
+					<select id="combo_tag" name="combo_tag">
+						<option value="">{{ lang('EDITORPLUS_COMBO_BBCODE_CHOOSE') }}</option>
+						{% for bbcode in bbcodes %}
+							<option value="{{ bbcode.TAG|e('html') }}"{% if bbcode.S_SELECTED %} selected="selected"{% endif %}>[{{ bbcode.TAG|e('html') }}]{% if bbcode.HELP %} – {{ bbcode.HELP|e('html') }}{% endif %}</option>
+						{% endfor %}
+					</select>
+				</dd>
+			</dl>
+			<dl>
+				<dt><label for="combo_mode_content">{{ lang('EDITORPLUS_COMBO_MODE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_COMBO_MODE_EXPLAIN') }}</span></dt>
+				<dd>
+					<label><input type="radio" class="radio" id="combo_mode_content" name="combo_mode" value="content"{% if COMBO_MODE != 'param' %} checked="checked"{% endif %}> <samp>[<span class="ep-tag-preview">bbcode</span>]{{ lang('EDITORPLUS_COMBO_VALUE') }}[/<span class="ep-tag-preview">bbcode</span>]</samp></label><br>
+					<label><input type="radio" class="radio" name="combo_mode" value="param"{% if COMBO_MODE == 'param' %} checked="checked"{% endif %}> <samp>[<span class="ep-tag-preview">bbcode</span>={{ lang('EDITORPLUS_COMBO_VALUE') }}][/<span class="ep-tag-preview">bbcode</span>]</samp></label>
+				</dd>
+			</dl>
+			<dl>
+				<dt><label for="combo_options">{{ lang('EDITORPLUS_COMBO_OPTIONS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_COMBO_OPTIONS_EXPLAIN') }}</span></dt>
+				<dd><textarea id="combo_options" name="combo_options" rows="14" cols="60" class="ep-textarea">{{ COMBO_OPTIONS|e('html') }}</textarea></dd>
+			</dl>
+			<dl>
+				<dt><label for="combo_groups">{{ lang('EDITORPLUS_COMBO_GROUPS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_COMBO_GROUPS_EXPLAIN') }}</span></dt>
+				<dd>
+					<select id="combo_groups" name="combo_groups[]" multiple="multiple" size="8" class="ep-groups">
+						{% for group in combo_groups %}
+							<option value="{{ group.ID }}"{% if group.S_SPECIAL %} class="sep"{% endif %}{% if group.S_SELECTED %} selected="selected"{% endif %}>{{ group.NAME|e('html') }} ({{ group.ID }})</option>
+						{% endfor %}
+					</select>
+				</dd>
+			</dl>
+			<dl>
+				<dt><label for="combo_enabled">{{ lang('EDITORPLUS_COMBO_ENABLED') ~ lang('COLON') }}</label></dt>
+				<dd><label><input type="checkbox" class="radio" id="combo_enabled" name="combo_enabled" value="1"{% if S_COMBO_ENABLED %} checked="checked"{% endif %}> {{ lang('EDITORPLUS_COMBO_ENABLED_EXPLAIN') }}</label></dd>
+			</dl>
+		</fieldset>
+
+		<fieldset class="submit-buttons">
+			<input type="hidden" name="id" value="{{ COMBO_ID }}">
+			<input class="button1" type="submit" name="save_combo" value="{{ lang('SUBMIT') }}">&nbsp;
+			<a class="button2 ep-link-button" href="{{ U_BACK }}">{{ lang('BACK') }}</a>
+			{{ S_FORM_TOKEN }}
+		</fieldset>
+	</form>
+
+	<script>
+		(function () {
+			var select = document.getElementById('combo_tag');
+			function update() {
+				var tag = select.value || 'bbcode';
+				document.querySelectorAll('.ep-tag-preview').forEach(function (el) { el.textContent = tag; });
+			}
+			select.addEventListener('change', update);
+			update();
+		})();
+	</script>
+{% else %}
+	{# ---------------- Elenco ---------------- #}
+	<p>{{ lang('EDITORPLUS_COMBOS_EXPLAIN') }}</p>
+
+	{% if not S_COMBOS_ON %}
+		<div class="ep-notice"><i class="icon fa-info-circle fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_COMBOS_OFF_NOTICE', U_SETTINGS) }}</div>
+	{% endif %}
+
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_COMBOS_LIST') }}</legend>
+		{% if combos %}
+			<table class="table1 zebra-table ep-combo-table">
+				<thead>
+					<tr>
+						<th>{{ lang('EDITORPLUS_COMBO_NAME') }}</th>
+						<th>{{ lang('EDITORPLUS_COMBO_BBCODE') }}</th>
+						<th class="centered-text">{{ lang('EDITORPLUS_COMBO_OPTIONS') }}</th>
+						<th class="centered-text">{{ lang('EDITORPLUS_COMBO_STATUS') }}</th>
+						<th class="actions">{{ lang('ACTION') }}</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% for combo in combos %}
+					<tr{% if not combo.S_ENABLED or combo.S_MISSING %} class="ep-row-off"{% endif %}>
+						<td><strong>{{ combo.NAME|e('html') }}</strong></td>
+						<td><samp>{% if combo.MODE == 'param' %}[{{ combo.TAG }}=…]{% else %}[{{ combo.TAG }}]…{% endif %}</samp></td>
+						<td class="centered-text">{{ combo.OPTIONS }}{% if combo.GROUPS %} <i class="icon fa-users fa-fw" title="{{ lang('EDITORPLUS_COMBO_GROUPS_LIMITED') }}" aria-hidden="true"></i>{% endif %}</td>
+						<td class="centered-text">
+							{% if combo.S_MISSING %}
+								<span class="ep-status ep-status-missing" title="{{ lang('EDITORPLUS_COMBO_MISSING_EXPLAIN') }}">{{ lang('EDITORPLUS_COMBO_MISSING') }}</span>
+							{% elseif combo.S_ENABLED %}
+								<span class="ep-status ep-status-on">{{ lang('EDITORPLUS_COMBO_ON') }}</span>
+							{% else %}
+								<span class="ep-status ep-status-off">{{ lang('EDITORPLUS_COMBO_OFF') }}</span>
+							{% endif %}
+						</td>
+						<td class="actions">
+							{% if combo.U_MOVE_UP %}<a href="{{ combo.U_MOVE_UP }}" title="{{ lang('MOVE_UP') }}" data-ep-move="up"><i class="icon fa-arrow-circle-up fa-fw" aria-hidden="true"></i></a>{% else %}<span class="ep-icon-placeholder"><i class="icon fa-arrow-circle-up fa-fw" aria-hidden="true"></i></span>{% endif %}
+							{% if combo.U_MOVE_DOWN %}<a href="{{ combo.U_MOVE_DOWN }}" title="{{ lang('MOVE_DOWN') }}" data-ep-move="down"><i class="icon fa-arrow-circle-down fa-fw" aria-hidden="true"></i></a>{% else %}<span class="ep-icon-placeholder"><i class="icon fa-arrow-circle-down fa-fw" aria-hidden="true"></i></span>{% endif %}
+							<a href="{{ combo.U_TOGGLE }}" title="{{ combo.S_ENABLED ? lang('EDITORPLUS_COMBO_DISABLE') : lang('EDITORPLUS_COMBO_ENABLE') }}" data-ep-toggle="1"><i class="icon {{ combo.S_ENABLED ? 'fa-toggle-on' : 'fa-toggle-off' }} fa-fw" aria-hidden="true"></i></a>
+							<a href="{{ combo.U_EDIT }}" title="{{ lang('EDIT') }}" data-ep-edit="1"><i class="icon fa-pencil fa-fw" aria-hidden="true"></i></a>
+							<a href="{{ combo.U_DELETE }}" title="{{ lang('DELETE') }}" data-ep-delete="1"><i class="icon fa-trash fa-fw" aria-hidden="true"></i></a>
+						</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<p class="ep-empty-list">{{ lang('EDITORPLUS_COMBOS_EMPTY') }}</p>
+		{% endif %}
+
+		<p class="ep-actions-bar"><a class="button1 ep-link-button" href="{{ U_ADD }}" id="ep_add_combo"><i class="icon fa-plus fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_COMBO_ADD') }}</a></p>
+	</fieldset>
+
+	<form id="editorplus_combos_import" method="post" action="{{ U_ACTION }}">
+		{% if S_PACK_USABLE %}
+			<fieldset>
+				<legend>{{ lang('EDITORPLUS_PACK') }}</legend>
+				<p>{{ lang('EDITORPLUS_PACK_EXPLAIN', PACK_COUNT) }}</p>
+				<p><input class="button2" type="submit" name="import_pack" value="{{ lang('EDITORPLUS_PACK_IMPORT') }}"></p>
+			</fieldset>
+		{% endif %}
+
+		<fieldset>
+			<legend>{{ lang('EDITORPLUS_IMPORT_EXPORT') }}</legend>
+			<dl>
+				<dt><label for="export_text">{{ lang('EDITORPLUS_EXPORT') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_EXPORT_EXPLAIN') }}</span></dt>
+				<dd><textarea id="export_text" rows="6" cols="60" class="ep-textarea" readonly>{{ EXPORT_JSON|e('html') }}</textarea></dd>
+			</dl>
+			<dl>
+				<dt><label for="import_text">{{ lang('EDITORPLUS_IMPORT') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMPORT_EXPLAIN') }}</span></dt>
+				<dd>
+					<textarea id="import_text" name="import_text" rows="6" cols="60" class="ep-textarea"></textarea><br>
+					<input class="button2" type="submit" name="import_json" value="{{ lang('EDITORPLUS_IMPORT') }}">
+				</dd>
+			</dl>
+			{{ S_FORM_TOKEN }}
+		</fieldset>
+	</form>
+{% endif %}
+
+<p class="ep-credits">Editor Plus {{ EDITORPLUS_VERSION }} · {{ lang('EDITORPLUS_DEVELOPED_BY') }} <a href="https://netshadows.de/ombra" target="_blank" rel="noopener">Salvo Cortesiano</a> · Le Ombre della Rete 360°</p>
+
+{% include 'overall_footer.html' %}

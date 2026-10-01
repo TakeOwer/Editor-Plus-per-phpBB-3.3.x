@@ -1,0 +1,77 @@
+services:
+    salvocortesiano.editorplus.listener:
+        class: salvocortesiano\editorplus\event\main_listener
+        arguments:
+            - '@config'
+            - '@config_text'
+            - '@dbal.conn'
+            - '@ext.manager'
+            - '@language'
+            - '@template'
+            - '@user'
+            - '@controller.helper'
+            - '%core.root_path%'
+            - '@service_container'
+        tags:
+            - { name: event.listener }
+
+    salvocortesiano.editorplus.acp_controller:
+        class: salvocortesiano\editorplus\controller\acp_controller
+        arguments:
+            - '@cache.driver'
+            - '@config'
+            - '@config_text'
+            - '@dbal.conn'
+            - '@ext.manager'
+            - '@language'
+            - '@log'
+            - '@request'
+            - '@template'
+            - '@user'
+
+    salvocortesiano.editorplus.render_controller:
+        class: salvocortesiano\editorplus\controller\render_controller
+        arguments:
+            - '@auth'
+            - '@config'
+            - '@request'
+            - '@user'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+            - '@dbal.conn'
+
+    salvocortesiano.editorplus.prefs_controller:
+        class: salvocortesiano\editorplus\controller\prefs_controller
+        arguments:
+            - '@dbal.conn'
+            - '@request'
+            - '@user'
+
+    salvocortesiano.editorplus.draft_controller:
+        class: salvocortesiano\editorplus\controller\draft_controller
+        arguments:
+            - '@config'
+            - '@dbal.conn'
+            - '@request'
+            - '@user'
+            - '%core.table_prefix%'
+
+    salvocortesiano.editorplus.checkup:
+        class: salvocortesiano\editorplus\core\checkup
+        arguments:
+            - '@config'
+            - '@config_text'
+            - '@dbal.conn'
+            - '@ext.manager'
+            - '@language'
+            - '@dbal.tools'
+            - '@controller.helper'
+            - '@service_container'
+            - '%core.root_path%'
+            - '%core.table_prefix%'
+
+    salvocortesiano.editorplus.katex_updater:
+        class: salvocortesiano\editorplus\core\katex_updater
+        arguments:
+            - '@config'
+            - '%core.root_path%'

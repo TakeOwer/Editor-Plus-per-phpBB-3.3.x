@@ -1,0 +1,509 @@
+/* Editor Plus – pagina ACP */
+.ep-badges {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin: 6px 0 14px;
+}
+
+.ep-badge {
+	display: inline-flex;
+	overflow: hidden;
+	font-size: 11px;
+	line-height: 20px;
+	color: #ffffff;
+	border-radius: 4px;
+	background: #4c555e;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
+}
+
+.ep-badge > span {
+	padding: 0 7px;
+	background: #555d66;
+}
+
+.ep-badge {
+	padding-right: 7px;
+}
+
+.ep-badge > span {
+	margin-right: 7px;
+}
+
+.ep-badge-blue { background: #1f7ac4; }
+.ep-badge-purple { background: #6f5cbf; }
+.ep-badge-teal { background: #16869a; }
+.ep-badge-orange { background: #d9771f; }
+.ep-badge-green { background: #3c9a3f; }
+
+.ep-notice {
+	margin: 0 0 10px;
+	padding: 8px 10px;
+	font-size: 12px;
+	border: 1px solid #c9dbee;
+	border-radius: 4px;
+	background: #eef5fc;
+}
+
+select.ep-groups {
+	min-width: 280px;
+}
+
+.ep-preview-line {
+	margin-top: 6px;
+}
+
+.ep-textarea {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 640px;
+	font-family: monospace;
+	font-size: 12px;
+}
+
+.ep-credits {
+	margin-top: 20px;
+	font-size: 11px;
+	text-align: center;
+	color: #6b7680;
+}
+
+.ep-combo-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 4px 12px;
+	max-width: 640px;
+}
+
+.ep-combo-list label {
+	white-space: nowrap;
+}
+
+.ep-combo-actions {
+	margin-top: 6px;
+	font-size: 11px;
+}
+
+/* Pagina Combo */
+.ep-combo-table td,
+.ep-combo-table th {
+	vertical-align: middle;
+}
+
+.ep-combo-table .actions {
+	width: 150px;
+	white-space: nowrap;
+	text-align: center;
+}
+
+.ep-combo-table .actions .icon {
+	font-size: 16px;
+}
+
+.ep-icon-placeholder {
+	opacity: 0.2;
+}
+
+.ep-row-off td {
+	opacity: 0.6;
+}
+
+.ep-status {
+	display: inline-block;
+	padding: 1px 8px;
+	font-size: 11px;
+	line-height: 18px;
+	color: #ffffff;
+	border-radius: 9px;
+}
+
+.ep-status-on { background: #3c9a3f; }
+.ep-status-off { background: #7a8791; }
+.ep-status-missing { background: #c0392b; cursor: help; }
+
+.ep-link-button {
+	display: inline-block;
+	padding: 3px 10px;
+	text-decoration: none !important;
+}
+
+.ep-actions-bar {
+	margin-top: 10px;
+}
+
+.ep-empty-list {
+	padding: 12px;
+	text-align: center;
+	color: #6b7680;
+}
+
+.ep-manage-link {
+	display: inline-block;
+	margin-top: 6px;
+}
+
+/* Editor visuale delle categorie */
+.ep-cat-intro {
+	margin: 0 0 6px;
+	font-size: 11px;
+	color: #6b7680;
+}
+
+.ep-cat-editor {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 10px;
+	max-width: 900px;
+}
+
+.ep-cat-editor[hidden] {
+	display: none;
+}
+
+.ep-cat-card {
+	display: flex;
+	flex-direction: column;
+	border: 1px solid #c9d3dd;
+	border-radius: 8px;
+	background: #ffffff;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+	transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.ep-cat-card.ep-cat-over {
+	box-shadow: 0 0 0 2px #4a90d9;
+}
+
+.ep-cat-card.ep-cat-dragging {
+	opacity: 0.5;
+}
+
+.ep-cat-pool {
+	grid-column: 1 / -1;
+	border-style: dashed;
+	background: #f7f9fb;
+}
+
+.ep-cat-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 8px;
+	border-bottom: 1px solid #e3e7eb;
+}
+
+.ep-cat-handle {
+	cursor: grab;
+	color: #7a8791;
+}
+
+.ep-cat-name.inputbox {
+	flex: 1;
+	min-width: 0;
+	font-weight: bold;
+}
+
+.ep-cat-count {
+	min-width: 18px;
+	padding: 0 6px;
+	font-size: 10px;
+	line-height: 16px;
+	text-align: center;
+	color: #ffffff;
+	border-radius: 8px;
+	background: #7a8791;
+}
+
+.ep-cat-del {
+	padding: 0;
+	cursor: pointer;
+	color: #c0392b;
+	border: 0;
+	background: none;
+}
+
+.ep-cat-body {
+	display: flex;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	gap: 4px;
+	min-height: 48px;
+	padding: 8px;
+	border-radius: 0 0 8px 8px;
+	transition: background 0.15s ease;
+}
+
+.ep-cat-body.ep-drop-over {
+	background: #e8f0fa;
+}
+
+.ep-chip {
+	padding: 2px 7px;
+	font-family: monospace;
+	font-size: 11px;
+	cursor: grab;
+	border: 1px solid #b9c9da;
+	border-radius: 10px;
+	background: #eef4fb;
+	user-select: none;
+}
+
+.ep-chip:hover {
+	border-color: #2f6fb3;
+}
+
+.ep-chip-missing {
+	opacity: 0.45;
+	text-decoration: line-through;
+}
+
+.ep-chip-drag {
+	opacity: 0.4;
+}
+
+.ep-cat-tools {
+	margin-top: 8px;
+}
+
+.ep-prefs-note {
+	margin: 10px 0 4px;
+	font-size: 11px;
+	color: #45515c;
+}
+
+/* Diagnostica */
+.ep-diag-table td {
+	vertical-align: top;
+	padding: 6px 8px;
+}
+
+.ep-diag-icon {
+	width: 24px;
+	font-size: 16px;
+}
+
+.ep-ok { color: #3c9a3f; }
+.ep-warn { color: #d9771f; }
+.ep-bad { color: #c0392b; }
+
+.ep-ghide-source {
+	display: inline-block;
+	margin-top: 6px;
+	font-size: 12px;
+}
+
+/* Consiglio su Advanced BBCode Box */
+.ep-abbc3-notice {
+	display: flex;
+	gap: 10px;
+	margin: 10px 0 14px;
+	padding: 10px 14px;
+	line-height: 1.5;
+	border: 1px solid #b9d3ee;
+	border-left: 4px solid #2f6fb3;
+	border-radius: 6px;
+	background: #eef5fc;
+}
+
+.ep-abbc3-notice .icon {
+	font-size: 18px;
+	color: #2f6fb3;
+}
+
+.ep-abbc3-bar_off,
+.ep-abbc3-disabled {
+	border-color: #f0d2a8;
+	border-left-color: #d9771f;
+	background: #fdf5ea;
+}
+
+.ep-abbc3-bar_off .icon,
+.ep-abbc3-disabled .icon {
+	color: #d9771f;
+}
+
+.ep-needs-abbc3 {
+	display: inline-block;
+	margin-top: 4px;
+	font-size: 11px;
+	color: #b3601a;
+}
+
+/* =====================================================================
+   Check-up
+   ===================================================================== */
+.ep-check-warnbox {
+	margin: 10px 0;
+	padding: 8px 12px;
+	color: #7a4a00;
+	border: 1px solid #f0d2a8;
+	border-left: 4px solid #d9771f;
+	border-radius: 6px;
+	background: #fdf5ea;
+}
+
+.ep-check-group {
+	margin-top: 14px;
+}
+
+.ep-check-table {
+	margin: 0;
+}
+
+.ep-check-table td {
+	padding: 7px 8px;
+	vertical-align: top;
+}
+
+.ep-check-label {
+	width: 28%;
+}
+
+.ep-check-status {
+	width: 12%;
+	white-space: nowrap;
+}
+
+.ep-check-detail {
+	word-break: break-word;
+}
+
+.ep-check-row {
+	border-left: 3px solid transparent;
+}
+
+.ep-check-row.ep-check-ok { border-left-color: #2e8b57; }
+.ep-check-row.ep-check-warn { border-left-color: #d9771f; background: #fffaf2; }
+.ep-check-row.ep-check-fail { border-left-color: #bc2a4d; background: #fff5f7; }
+
+.ep-st {
+	font-weight: bold;
+}
+
+.ep-st-ok { color: #2e8b57; }
+.ep-st-warn { color: #c7680c; }
+.ep-st-fail { color: #bc2a4d; }
+.ep-st-idle { color: #8a939c; }
+
+.ep-check-hint {
+	display: inline-block;
+	margin-top: 3px;
+	font-size: 11px;
+	color: #5c6873;
+}
+
+.ep-check-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	margin-top: 10px;
+}
+
+#ep-live-frame {
+	position: absolute;
+	left: -10000px;
+	top: 0;
+	width: 1200px;
+	height: 900px;
+	border: 0;
+	visibility: hidden;
+}
+
+/* 1.0.29 – aggiornamento di KaTeX */
+#ep-katex-frame {
+	position: absolute;
+	left: -10000px;
+	top: 0;
+	width: 900px;
+	height: 600px;
+	border: 0;
+	visibility: hidden;
+}
+
+#ep-katex-offer > div {
+	margin: 3px 0;
+}
+
+#ep-katex-offer button {
+	margin-left: 6px;
+}
+
+.ep-katex-other {
+	padding-top: 4px;
+	border-top: 1px dashed #d8dee4;
+}
+
+/* un suggerimento nascosto resta nascosto (display: inline-block annullava l'attributo hidden) */
+.ep-check-hint[hidden] {
+	display: none;
+}
+
+/* 1.0.30 – barra di avanzamento dell'aggiornamento di KaTeX */
+.ep-kprog {
+	margin: 10px 0 4px;
+	padding: 10px 12px;
+	border: 1px solid #d8dee4;
+	border-radius: 8px;
+	background: #f8fafc;
+}
+
+.ep-kprog[hidden] {
+	display: none;
+}
+
+.ep-kprog-head {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+
+.ep-kprog-step {
+	font-size: 11px;
+	color: #5c6873;
+}
+
+.ep-kprog-track {
+	height: 14px;
+	overflow: hidden;
+	border-radius: 7px;
+	background: #e3e8ee;
+}
+
+.ep-kprog-bar {
+	width: 0;
+	height: 100%;
+	border-radius: 7px;
+	background: linear-gradient(90deg, #1e6fb8, #3b9be0);
+	transition: width 0.2s ease;
+}
+
+.ep-kprog-detail {
+	min-height: 1.2em;
+	margin-top: 5px;
+	font-size: 12px;
+	color: #3d4852;
+}
+
+.ep-kprog.ep-kprog-done .ep-kprog-bar {
+	background: linear-gradient(90deg, #2e8b57, #45b27a);
+}
+
+.ep-kprog.ep-kprog-error {
+	border-color: #e3a8b5;
+	background: #fff5f7;
+}
+
+.ep-kprog.ep-kprog-error .ep-kprog-bar {
+	background: #bc2a4d;
+}
+
+.ep-kprog.ep-kprog-error .ep-kprog-detail {
+	font-weight: bold;
+	color: #bc2a4d;
+}
+
+.ep-kprog-head .ep-raw-space {
+	flex: 1;
+}

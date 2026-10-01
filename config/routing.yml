@@ -1,0 +1,14 @@
+salvocortesiano_editorplus_render:
+    path: /editorplus/render
+    defaults: { _controller: salvocortesiano.editorplus.render_controller:render }
+    methods: [POST]
+
+salvocortesiano_editorplus_prefs:
+    path: /editorplus/prefs
+    defaults: { _controller: salvocortesiano.editorplus.prefs_controller:save }
+    methods: [POST]
+
+salvocortesiano_editorplus_draft:
+    path: /editorplus/draft
+    defaults: { _controller: salvocortesiano.editorplus.draft_controller:handle }
+    methods: [POST]

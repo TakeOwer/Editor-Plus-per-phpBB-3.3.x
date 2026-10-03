@@ -1,6 +1,6 @@
 # Editor Plus for phpBB 3.3
 
-![Version](https://img.shields.io/badge/version-1.0.34-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![License](https://img.shields.io/badge/license-GPL--2.0-green)
+![Version](https://img.shields.io/badge/version-1.0.42-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![License](https://img.shields.io/badge/license-GPL--2.0-green)
 
 **Editor Plus** (`salvocortesiano/editorplus`) enhances phpBB's posting toolbar: category menus, image dropdowns, smileys, icons, emojis, color picker with gradients, live preview, format-as-you-type, visual editor, server-saved drafts, syntax highlighting, mathematical and chemical formulas, scientific calculator, and a dedicated **Check-up** tab that automatically verifies proper functionality.
 
@@ -49,6 +49,22 @@ Developed by **Salvo Cortesiano** for *Le Ombre della Rete 360°* (netshadows.de
 <img width="1818" height="493" alt="Screenshot 2026-10-01 105715" src="https://github.com/user-attachments/assets/8637435f-0e1a-479b-8348-0b020ef15876" />
 ---
 <img width="1805" height="478" alt="Screenshot 2026-10-01 105729" src="https://github.com/user-attachments/assets/35b0b7c0-0633-4f94-881d-fdb053e3d24e" />
+---
+<img width="2293" height="391" alt="Screenshot 2026-10-03 114808" src="https://github.com/user-attachments/assets/bb36630d-f180-4e15-9c07-0a1e09a7c718" />
+---
+<img width="2298" height="515" alt="Screenshot 2026-10-03 114824" src="https://github.com/user-attachments/assets/4f4b8fb6-3b36-4caa-80c0-4f883dc8e48a" />
+---
+<img width="2290" height="662" alt="Screenshot 2026-10-03 114849" src="https://github.com/user-attachments/assets/2ca5731e-436e-4b64-bf8b-8a469060f976" />
+---
+<img width="2296" height="644" alt="Screenshot 2026-10-03 114900" src="https://github.com/user-attachments/assets/61e2602d-9db8-4242-8d79-22aa9cdb0b95" />
+---
+<img width="1008" height="965" alt="Screenshot 2026-10-03 114933" src="https://github.com/user-attachments/assets/a1be316d-6691-4e20-a936-ceb9f360aa83" />
+---
+<img width="1815" height="971" alt="Screenshot 2026-10-03 114959" src="https://github.com/user-attachments/assets/9f73f130-cb16-4867-a80b-3c2dcf3c39e8" />
+---
+<img width="670" height="564" alt="Screenshot 2026-10-03 115008" src="https://github.com/user-attachments/assets/062c8e73-8a02-4e71-b3b7-e7526a7e5e4f" />
+---
+<img width="1404" height="1239" alt="Screenshot 2026-10-03 115016" src="https://github.com/user-attachments/assets/ece556f4-2a8b-4434-8498-fe31f15da265" />
 ---
 
 ## Table of Contents

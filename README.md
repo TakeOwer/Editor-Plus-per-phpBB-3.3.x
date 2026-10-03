@@ -66,6 +66,8 @@ Developed by **Salvo Cortesiano** for *Le Ombre della Rete 360°* (netshadows.de
 ---
 <img width="1404" height="1239" alt="Screenshot 2026-10-03 115016" src="https://github.com/user-attachments/assets/ece556f4-2a8b-4434-8498-fe31f15da265" />
 ---
+<img width="735" height="853" alt="Screenshot 2026-10-03 115028" src="https://github.com/user-attachments/assets/6673bfb4-8f40-4758-b0de-c5d82deb5433" />
+---
 
 ## Table of Contents
 

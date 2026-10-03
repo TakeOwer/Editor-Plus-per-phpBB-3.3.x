@@ -23,6 +23,11 @@ class main_info
 					'auth'	=> 'ext_salvocortesiano/editorplus',
 					'cat'	=> ['UCP_PREFS'],
 				],
+				'images'	=> [
+					'title'	=> 'UCP_EDITORPLUS_IMAGES',
+					'auth'	=> 'ext_salvocortesiano/editorplus && cfg_editorplus_images',
+					'cat'	=> ['UCP_MAIN'],
+				],
 			],
 		];
 	}

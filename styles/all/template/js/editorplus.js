@@ -89,7 +89,7 @@
 	}
 
 	var cfg = window.EditorPlusConfig || {};
-	var epState = {version: '1.0.34', ready: false, config: !!(cfg && cfg.features), errors: []};
+	var epState = {version: '1.0.42', ready: false, config: !!(cfg && cfg.features), errors: []};
 
 	function report(step, err) {
 		epState.errors.push(step + ': ' + (err && err.message ? err.message : err));
@@ -425,6 +425,87 @@
 	/* ------------------------------------------------------------------ */
 	/* Reazioni a ogni cambiamento del testo                               */
 	/* ------------------------------------------------------------------ */
+
+	/*
+	 * 1.0.42: conferme con la finestra integrata di phpBB (stesso aspetto dello stile del forum, come le
+	 * conferme di phpBB e delle altre estensioni) invece del riquadro grigio del browser.
+	 * Se la pagina non ha la finestra di phpBB si ripiega sul riquadro del browser.
+	 * @return Promise<boolean>
+	 */
+	function niceConfirm(message, opts) {
+		opts = opts || {};
+		return new Promise(function (resolve) {
+			var $ = window.jQuery;
+			var box = document.getElementById('phpbb_confirm');
+			// il contenitore delle finestre di phpBB (sfondo scuro e finestre stanno lì dentro, affiancati)
+			var dark = document.getElementById('darkenwrapper') || (document.getElementById('darken') || {}).parentNode;
+			if (!$ || !window.phpbb || typeof window.phpbb.confirm !== 'function' || !box || !dark) {
+				resolve(window.confirm(message));
+				return;
+			}
+			var html = '<h3>' + escapeHtml(opts.title || lang('EP_CONFIRM_TITLE')) + '</h3><p>' + escapeHtml(message) + '</p>' +
+				'<fieldset class="submit-buttons"><input type="button" name="confirm" value="' + escapeHtml(opts.yes || lang('EP_YES')) + '" class="button2">&nbsp;' +
+				'<input type="button" name="cancel" value="' + escapeHtml(opts.no || lang('EP_NO')) + '" class="button2"></fieldset>';
+			// Sopra le finestre di Editor Plus. Lo sfondo di phpBB sta dentro il piè di pagina, e un elemento
+			// non può superare il livello del suo contenitore: lo si porta per il tempo della conferma
+			// direttamente nel corpo della pagina, e poi lo si rimette esattamente dov'era.
+			var home = {parent: dark.parentNode, next: dark.nextSibling};
+			var oldZ = dark.style.zIndex;
+			document.body.appendChild(dark);
+			dark.style.zIndex = '100050';
+			document.documentElement.classList.add('ep-confirm-open');
+			var done = false, seen = false, timer = null;
+			var finish = function (ok) {
+				if (done) {
+					return;
+				}
+				done = true;
+				clearInterval(timer);
+				// il segnale si toglie solo dopo che lo stesso tasto (es. Esc) ha finito il suo giro: phpBB lo riceve
+				// per primo e chiude la conferma, ma anche gli altri gestori devono vederla ancora aperta
+				setTimeout(function () {
+					document.documentElement.classList.remove('ep-confirm-open');
+				}, 0);
+				setTimeout(function () {
+					dark.style.zIndex = oldZ;
+					if (home.parent && dark.parentNode !== home.parent) {
+						home.parent.insertBefore(dark, home.next && home.next.parentNode === home.parent ? home.next : null);
+					}
+				}, 500);
+				resolve(!!ok);
+			};
+			window.phpbb.confirm(html, function (ok) {
+				finish(ok);
+			});
+			// chiusa senza rispondere (clic fuori o sulla X): phpBB non avvisa, vale come "No"
+			timer = setInterval(function () {
+				var visible = $(box).is(':visible');
+				if (visible) {
+					seen = true;
+				} else if (seen && !$(box).is(':animated')) {
+					finish(false);
+				}
+			}, 150);
+			setTimeout(function () {
+				var b = box.querySelector('input[name="cancel"]');
+				if (b) {
+					b.focus();
+				}
+			}, 350);
+		});
+	}
+
+	/* testo sostituito per intero, annullabile con Ctrl+Z (usato dai moduli, es. immagini eliminate) */
+	function setText(value) {
+		if (value === ta.value) {
+			return;
+		}
+		flushTyping();
+		snapshot();
+		ta.value = value;
+		snapshot();
+		changed();
+	}
 
 	var changeListeners = [];
 
@@ -1463,11 +1544,14 @@
 		if (F.math && window.EditorPlusMath) {
 			tools.appendChild(toolButton('fa-superscript', lang('EP_MATH_TITLE'), 'math'));
 		}
-		if (F.calc && window.EditorPlusCalc) {
+		if (F.calc) {
 			tools.appendChild(toolButton('fa-calculator', lang('EP_CALC_TITLE'), 'calc'));
 		}
 		if (F.emoji) {
 			tools.appendChild(toolButton('fa-smile-o', lang('EP_EMOJI_TITLE'), 'emoji'));
+		}
+		if (imagesOn() && !cfg.isGuest) {
+			tools.appendChild(toolButton('fa-picture-o', lang('EP_IMG_TITLE'), 'images'));
 		}
 		if (F.search_replace) {
 			tools.appendChild(toolButton('fa-search', lang('EP_SR_TITLE'), 'search'));
@@ -1530,6 +1614,9 @@
 					break;
 				case 'calc':
 					openMath('calc');
+					break;
+				case 'images':
+					openImages();
 					break;
 				case 'search':
 					if (wyActive()) {
@@ -1900,8 +1987,18 @@
 		var body = el('div', {className: 'content ep-live-content'});
 		var state = el('span', {className: 'ep-live-state'});
 		var close = el('button', {type: 'button', className: 'ep-live-close', title: lang('EP_CLOSE'), 'aria-label': lang('EP_CLOSE')}, [el('i', {className: 'fa fa-times', 'aria-hidden': 'true'})]);
+		var head = [el('i', {className: 'fa fa-eye', 'aria-hidden': 'true'}), el('strong', {text: lang('EP_LIVE_TITLE')}), state];
+		// 1.0.36: stampa / PDF del messaggio (contenuti nascosti solo per i gruppi autorizzati)
+		if (F.print && cfg.printUrl && !cfg.isGuest) {
+			var printBtn = el('button', {type: 'button', className: 'ep-live-print', title: lang('EP_PRINT_TITLE')}, [el('i', {className: 'fa fa-print', 'aria-hidden': 'true'}), ' ' + lang('EP_PRINT_BUTTON')]);
+			printBtn.addEventListener('click', function () {
+				printMessage(printBtn, state);
+			});
+			head.push(printBtn);
+		}
+		head.push(close);
 		var box = el('div', {className: 'ep-live', 'aria-live': 'polite', hidden: true}, [
-			el('div', {className: 'ep-live-head'}, [el('i', {className: 'fa fa-eye', 'aria-hidden': 'true'}), el('strong', {text: lang('EP_LIVE_TITLE')}), state, close]),
+			el('div', {className: 'ep-live-head'}, head),
 			el('div', {className: 'postbody ep-live-body'}, [body])
 		]);
 		(status && status.parentNode ? status : ta).insertAdjacentElement('afterend', box);
@@ -2319,10 +2416,43 @@
 		});
 	}
 
+	/* 1.0.38: le immagini vanno nella cartella dell'utente (files/nome_ID/), gli altri file restano allegati */
+	var IMG_TYPES = {'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp'};
+
+	function imagesOn() {
+		return !!(cfg.images && cfg.images.enabled);
+	}
+
+	function isFolderImage(file) {
+		return imagesOn() && !!IMG_TYPES[file.type];
+	}
+
+	function openImages() {
+		loadModule('images', [loadScriptOnce('editorplus_gallery.js')]).then(function (m) {
+			m.open();
+		}, function () {});
+	}
+
 	function uploadFiles(files, pos) {
 		files = Array.prototype.slice.call(files || []);
 		if (!files.length) {
 			return false;
+		}
+		var pics = files.filter(isFolderImage);
+		files = files.filter(function (f) {
+			return !isFolderImage(f);
+		});
+		if (pics.length) {
+			if (!cfg.images.allowed) {
+				toast(cfg.images.reason || lang('EP_IMG_ERR_NO_GROUP'), 'error');
+			} else {
+				loadModule('images', [loadScriptOnce('editorplus_gallery.js')]).then(function (m) {
+					m.upload(pics, pos);
+				}, function () {});
+			}
+			if (!files.length) {
+				return true;
+			}
 		}
 		var up = uploader();
 		if (!up) {
@@ -2368,7 +2498,7 @@
 			if (hasFiles(e)) {
 				depth++;
 				// phpBB prepara il caricamento dopo l'avvio della pagina: si controlla ora
-				var ok = !!uploader();
+				var ok = !!uploader() || (imagesOn() && cfg.images.allowed);
 				dropLabel.textContent = lang(ok ? 'EP_DROP_HERE' : 'EP_UPLOAD_NOT_HERE');
 				dropIcon.className = 'fa ' + (ok ? 'fa-cloud-upload' : 'fa-ban');
 				target.classList.toggle('ep-drop-denied', !ok);
@@ -3462,492 +3592,141 @@
 	}
 
 
+
 	/* ------------------------------------------------------------------ */
-	/* 1.0.28: formule (KaTeX) e calcolatrice scientifica                  */
+	/* 1.0.37: moduli scaricati solo al primo utilizzo                     */
+	/* (formule e calcolatrice, colore, stampa): la pagina di scrittura    */
+	/* scarica meno codice e parte prima, soprattutto sul telefono.        */
 	/* ------------------------------------------------------------------ */
 
-	/* Tavolozza: [come appare (LaTeX), cosa si inserisce]; # = dove va il cursore (o il testo selezionato) */
-	var MATH_PALETTE = [
-		['EP_MATH_CAT_BASE', [
-			['+', '+'], ['-', '-'], ['\\times', '\\times '], ['\\div', '\\div '], ['\\cdot', '\\cdot '], ['\\pm', '\\pm '],
-			['=', '='], ['\\neq', '\\neq '], ['\\approx', '\\approx '], ['\\equiv', '\\equiv '], ['<', '<'], ['>', '>'],
-			['\\leq', '\\leq '], ['\\geq', '\\geq '], ['\\infty', '\\infty '], ['\\%', '\\%'], ['\\propto', '\\propto '], ['\\degree', '^\\circ']
-		]],
-		['EP_MATH_CAT_STRUCT', [
-			['\\frac{a}{b}', '\\frac{#}{}'], ['\\sqrt{x}', '\\sqrt{#}'], ['\\sqrt[n]{x}', '\\sqrt[]{#}'], ['x^{n}', '^{#}'],
-			['x_{n}', '_{#}'], ['x_{a}^{b}', '_{#}^{}'], ['e^{x}', 'e^{#}'], ['\\log_{b}', '\\log_{#}'], ['\\ln', '\\ln\\left(#\\right)'],
-			['\\left|x\\right|', '\\left|#\\right|'], ['\\left(x\\right)', '\\left(#\\right)'], ['\\left[x\\right]', '\\left[#\\right]'],
-			['\\overline{x}', '\\overline{#}'], ['\\vec{v}', '\\vec{#}'], ['\\hat{x}', '\\hat{#}'], ['\\dot{x}', '\\dot{#}'],
-			['\\binom{n}{k}', '\\binom{#}{}'], ['n!', '!']
-		]],
-		['EP_MATH_CAT_GREEK', ['alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta', 'theta', 'lambda', 'mu', 'nu', 'xi',
-			'pi', 'rho', 'sigma', 'tau', 'phi', 'chi', 'psi', 'omega', 'Gamma', 'Delta', 'Theta', 'Lambda', 'Pi', 'Sigma', 'Phi', 'Psi', 'Omega'
-		].map(function (g) {
-			return ['\\' + g, '\\' + g + ' '];
-		})],
-		['EP_MATH_CAT_CALCULUS', [
-			['\\int', '\\int #\\,dx'], ['\\int_{a}^{b}', '\\int_{#}^{} \\,dx'], ['\\iint', '\\iint #\\,dA'], ['\\oint', '\\oint #'],
-			['\\sum_{i=1}^{n}', '\\sum_{i=1}^{n} #'], ['\\prod_{i=1}^{n}', '\\prod_{i=1}^{n} #'], ['\\lim_{x\\to a}', '\\lim_{x \\to #}'],
-			['\\frac{d}{dx}', '\\frac{d}{dx}#'], ['\\frac{\\partial f}{\\partial x}', '\\frac{\\partial #}{\\partial x}'], ["f'(x)", "f'(#)"],
-			['\\nabla', '\\nabla '], ['\\partial', '\\partial '], ['\\Delta x', '\\Delta '], ['\\to', '\\to '], ['\\infty', '\\infty ']
-		]],
-		['EP_MATH_CAT_SETS', [
-			['\\in', '\\in '], ['\\notin', '\\notin '], ['\\subset', '\\subset '], ['\\subseteq', '\\subseteq '], ['\\cup', '\\cup '],
-			['\\cap', '\\cap '], ['\\setminus', '\\setminus '], ['\\emptyset', '\\emptyset '], ['\\mathbb{N}', '\\mathbb{N}'], ['\\mathbb{Z}', '\\mathbb{Z}'],
-			['\\mathbb{Q}', '\\mathbb{Q}'], ['\\mathbb{R}', '\\mathbb{R}'], ['\\mathbb{C}', '\\mathbb{C}'], ['\\forall', '\\forall '],
-			['\\exists', '\\exists '], ['\\neg', '\\neg '], ['\\land', '\\land '], ['\\lor', '\\lor '], ['\\Rightarrow', '\\Rightarrow '],
-			['\\Leftrightarrow', '\\Leftrightarrow '], ['\\rightarrow', '\\rightarrow '], ['\\leftarrow', '\\leftarrow '], ['\\mapsto', '\\mapsto ']
-		]],
-		['EP_MATH_CAT_MATRIX', [
-			['\\begin{pmatrix}a&b\\\\c&d\\end{pmatrix}', '\\begin{pmatrix} # & \\\\  & \\end{pmatrix}'],
-			['\\begin{bmatrix}a&b\\\\c&d\\end{bmatrix}', '\\begin{bmatrix} # & \\\\  & \\end{bmatrix}'],
-			['\\begin{vmatrix}a&b\\\\c&d\\end{vmatrix}', '\\begin{vmatrix} # & \\\\  & \\end{vmatrix}'],
-			['\\begin{pmatrix}a&b&c\\\\d&e&f\\\\g&h&i\\end{pmatrix}', '\\begin{pmatrix} # &  &  \\\\  &  &  \\\\  &  &  \\end{pmatrix}'],
-			['\\begin{cases}a\\\\b\\end{cases}', '\\begin{cases} # \\\\  \\end{cases}'],
-			['\\begin{aligned}a&=b\\\\c&=d\\end{aligned}', '\\begin{aligned} # &=  \\\\  &=  \\end{aligned}']
-		]],
-		['EP_MATH_CAT_CHEM', [
-			['\\ce{H2O}', '\\ce{#}'], ['\\ce{A -> B}', '\\ce{# -> }'], ['\\ce{A <=> B}', '\\ce{# <=> }'], ['\\ce{^{14}_{6}C}', '\\ce{^{#}_{}}'],
-			['\\ce{SO4^2-}', '\\ce{#^{2-}}'], ['\\ce{A ->[\\Delta] B}', '\\ce{# ->[\\Delta] }'], ['\\ce{v}', '\\ce{v}'], ['\\ce{^}', '\\ce{^}']
-		]]
-	];
-
-	var MATH_TEMPLATES = [
-		['EP_MATH_T_QUADRATIC', 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}'],
-		['EP_MATH_T_PYTHAGORAS', 'a^2 + b^2 = c^2'],
-		['EP_MATH_T_EULER', 'e^{i\\pi} + 1 = 0'],
-		['EP_MATH_T_EINSTEIN', 'E = mc^2'],
-		['EP_MATH_T_DERIVATIVE', "f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}"],
-		['EP_MATH_T_INTEGRAL', '\\int_{-\\infty}^{+\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}'],
-		['EP_MATH_T_BINOMIAL', '(a+b)^n = \\sum_{k=0}^{n} \\binom{n}{k} a^{n-k} b^k'],
-		['EP_MATH_T_SYSTEM', '\\begin{cases} 2x + y = 5 \\\\ x - y = 1 \\end{cases}'],
-		['EP_MATH_T_DET', '\\det\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix} = ad - bc'],
-		['EP_MATH_T_SCHRODINGER', 'i\\hbar\\frac{\\partial}{\\partial t}\\Psi = \\hat{H}\\Psi'],
-		['EP_MATH_T_PHOTON', 'E = h\\nu = \\frac{hc}{\\lambda}'],
-		['EP_MATH_T_COMBUSTION', '\\ce{CH4 + 2O2 -> CO2 + 2H2O}'],
-		['EP_MATH_T_EQUILIBRIUM', '\\ce{N2 + 3H2 <=> 2NH3}'],
-		['EP_MATH_T_DECAY', '\\ce{^{14}_{6}C -> ^{14}_{7}N + e- + \\bar{\\nu}_e}']
-	];
-
-	var CALC_KEYS = [
-		['sin', 'sin('], ['cos', 'cos('], ['tan', 'tan('], ['ln', 'ln('], ['log', 'log('], ['√', 'sqrt('],
-		['sin⁻¹', 'asin('], ['cos⁻¹', 'acos('], ['tan⁻¹', 'atan('], ['eˣ', 'exp('], ['10ˣ', '10^'], ['x²', '^2'],
-		['xʸ', '^'], ['(', '('], [')', ')'], ['n!', '!'], ['%', '%'], ['÷', '/', 'op'],
-		['7', '7', 'num'], ['8', '8', 'num'], ['9', '9', 'num'], ['C', '#clear', 'fn'], ['⌫', '#back', 'fn'], ['×', '*', 'op'],
-		['4', '4', 'num'], ['5', '5', 'num'], ['6', '6', 'num'], ['π', 'pi'], ['e', 'e'], ['−', '-', 'op'],
-		['1', '1', 'num'], ['2', '2', 'num'], ['3', '3', 'num'], ['i', 'i'], ['Ans', 'Ans'], ['+', '+', 'op'],
-		['0', '0', 'num'], ['#dec', '#dec', 'num'], ['EXP', 'e', 'x10'], ['±', '#neg'], ['nCr', 'nCr('], ['=', '#eq', 'eq']
-	];
-
-	var CALC_FUNCS = ['abs(', 'arg(', 'conj(', 're(', 'im(', 'cbrt(', 'root(', 'log2(', 'logb(', 'sinh(', 'cosh(', 'tanh(',
-		'floor(', 'ceil(', 'round(', 'mod(', 'nPr('];
-
-	var mathDlg = null;
-
-	function calcDecimal() {
-		return lang('EP_CALC_DECIMAL') === ',' ? ',' : '.';
+	function escapeHtml(t) {
+		return String(t).replace(/[&<>"]/g, function (c) {
+			return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c];
+		});
 	}
 
-	function buildMathDialog() {
-		var d = makeDialog(lang('EP_MATH_DIALOG'), 'ep-math-dialog');
-		var tabF = el('button', {type: 'button', className: 'ep-mtab', 'data-tab': 'formula'}, [el('i', {className: 'fa fa-superscript', 'aria-hidden': 'true'}), ' ' + lang('EP_MATH_TAB_FORMULA')]);
-		var tabC = el('button', {type: 'button', className: 'ep-mtab', 'data-tab': 'calc'}, [el('i', {className: 'fa fa-calculator', 'aria-hidden': 'true'}), ' ' + lang('EP_MATH_TAB_CALC')]);
-		if (!F.math || !window.EditorPlusMath) {
-			tabF.hidden = true;
-		}
-		if (!F.calc || !window.EditorPlusCalc) {
-			tabC.hidden = true;
-		}
-		d.body.appendChild(el('div', {className: 'ep-mtabs', role: 'tablist'}, [tabF, tabC]));
+	var moduleCache = {};
+	var scriptCache = {};
 
-		/* ---------------- scheda Formula ---------------- */
-		var paneF = el('div', {className: 'ep-mpane', 'data-pane': 'formula'});
-		var modeBlock = el('input', {type: 'radio', name: 'ep-math-mode', value: 'block', checked: true});
-		var modeInline = el('input', {type: 'radio', name: 'ep-math-mode', value: 'inline'});
-		var tpl = el('select', {className: 'ep-math-tpl', 'aria-label': lang('EP_MATH_TEMPLATES')}, [el('option', {value: '', text: lang('EP_MATH_TEMPLATES')})]);
-		MATH_TEMPLATES.forEach(function (t, i) {
-			tpl.appendChild(el('option', {value: String(i), text: lang(t[0])}));
-		});
-		paneF.appendChild(el('div', {className: 'ep-syn-row'}, [
-			el('label', {}, [modeBlock, ' ' + lang('EP_MATH_BLOCK')]),
-			el('label', {}, [modeInline, ' ' + lang('EP_MATH_INLINE')]),
-			el('span', {className: 'ep-raw-space'}),
-			tpl
-		]));
-		var cats = el('div', {className: 'ep-math-cats', role: 'tablist'});
-		var grid = el('div', {className: 'ep-math-grid'});
-		paneF.appendChild(cats);
-		paneF.appendChild(grid);
-		var area = el('textarea', {className: 'ep-math-src', rows: '4', spellcheck: 'false', placeholder: lang('EP_MATH_PLACEHOLDER')});
-		paneF.appendChild(area);
-		var pvTitle = el('div', {className: 'ep-syn-pv-title', text: lang('EP_SYN_PREVIEW')});
-		var pv = el('div', {className: 'ep-math-preview'});
-		var err = el('div', {className: 'ep-math-err', role: 'status'});
-		paneF.appendChild(pvTitle);
-		paneF.appendChild(pv);
-		paneF.appendChild(err);
-		var help = el('a', {href: 'https://katex.org/docs/supported.html', target: '_blank', rel: 'noopener', className: 'ep-math-help'}, [el('i', {className: 'fa fa-question-circle', 'aria-hidden': 'true'}), ' ' + lang('EP_MATH_HELP')]);
-		var insF = el('button', {type: 'button', className: 'ep-btn'}, [lang('EP_MATH_INSERT')]);
-		paneF.appendChild(el('div', {className: 'ep-raw-actions'}, [help, el('span', {className: 'ep-raw-space'}), insF]));
-		d.body.appendChild(paneF);
+	function jsUrl(file) {
+		return (cfg.rootPath || './') + 'ext/salvocortesiano/editorplus/styles/all/template/js/' + file + '?v=' + epState.version;
+	}
 
-		function isBlock() {
-			return !modeInline.checked;
+	function loadScriptOnce(file) {
+		if (!scriptCache[file]) {
+			scriptCache[file] = new Promise(function (resolve, reject) {
+				var sc = document.createElement('script');
+				sc.src = jsUrl(file);
+				sc.onload = resolve;
+				sc.onerror = function () {
+					scriptCache[file] = null;
+					reject(new Error(file));
+				};
+				document.head.appendChild(sc);
+			});
 		}
+		return scriptCache[file];
+	}
 
-		var timer = null;
-		function preview() {
-			clearTimeout(timer);
-			timer = setTimeout(function () {
-				var tex = area.value.trim();
-				err.textContent = '';
-				insF.disabled = !tex;
-				if (!tex) {
-					pv.textContent = '';
-					return;
+	function moduleApi() {
+		return {F: F, cfg: cfg, ta: ta, wy: wy, setText: setText, confirm: niceConfirm, el: el, lang: lang, format: format, makeDialog: makeDialog, showDialog: showDialog, closeDialog: closeDialog, insertText: insertText, wrap: wrap, storeGet: storeGet, storeSet: storeSet, subjectInput: subjectInput, toB64: toB64, attachmentData: attachmentData, attachmentUrl: attachmentUrl, ATT_IMAGE: ATT_IMAGE, escapeHtml: escapeHtml, clamp: clamp, hexToRgb: hexToRgb, rgbToHex: rgbToHex, rgbToHsv: rgbToHsv, hsvToRgb: hsvToRgb, rgbToHsl: rgbToHsl, hslToRgb: hslToRgb, contrast: contrast, cssColorToRgb: cssColorToRgb, postBackground: postBackground, colorShades: colorShades, COLOR_BASES: COLOR_BASES, COLOR_RECENT_KEY: COLOR_RECENT_KEY, toast: toast, trayItem: trayItem, wyActive: function () {
+			return typeof wyActive === 'function' && wyActive();
+		}};
+	}
+
+	function loadModule(name, extra) {
+		if (!moduleCache[name]) {
+			moduleCache[name] = Promise.all([loadScriptOnce('editorplus_mod_' + name + '.js')].concat(extra || [])).then(function () {
+				var factory = (window.EditorPlusModules || {})[name];
+				if (!factory) {
+					throw new Error(name);
 				}
-				window.EditorPlusMath.check(tex).then(function (msg) {
-					err.textContent = msg ? lang('EP_MATH_ERROR') + ' ' + msg : '';
-					return window.EditorPlusMath.render(tex, pv, isBlock());
-				}).catch(function () {
-					pv.textContent = tex;
-				});
-			}, 200);
-		}
-
-		/* inserisce un pezzo di formula al cursore; il testo selezionato finisce al posto di # */
-		function put(snippet) {
-			var s0 = area.selectionStart, s1 = area.selectionEnd;
-			var sel = area.value.slice(s0, s1);
-			var at = snippet.indexOf('#');
-			var text = at === -1 ? snippet : snippet.slice(0, at) + sel + snippet.slice(at + 1);
-			area.value = area.value.slice(0, s0) + text + area.value.slice(s1);
-			var caret = at === -1 ? s0 + text.length : s0 + at + sel.length;
-			area.focus();
-			area.setSelectionRange(caret, caret);
-			preview();
-		}
-
-		function showCat(i) {
-			Array.prototype.forEach.call(cats.children, function (b, j) {
-				b.classList.toggle('ep-on', i === j);
-				b.setAttribute('aria-selected', i === j ? 'true' : 'false');
-			});
-			grid.textContent = '';
-			MATH_PALETTE[i][1].forEach(function (item) {
-				var b = el('button', {type: 'button', className: 'ep-math-key', title: item[1].replace('#', '…')});
-				b.appendChild(el('span', {text: item[0]}));
-				b.addEventListener('mousedown', function (e) {
-					e.preventDefault();
-				});
-				b.addEventListener('click', function () {
-					put(item[1]);
-				});
-				grid.appendChild(b);
-				window.EditorPlusMath.render(item[0], b.firstChild, false).catch(function () {});
+				return factory(moduleApi());
+			}).catch(function (e) {
+				moduleCache[name] = null;
+				report('modulo ' + name, e);
+				toast(lang('EP_MODULE_FAILED'), 'error');
+				throw e;
 			});
 		}
-		MATH_PALETTE.forEach(function (c, i) {
-			var b = el('button', {type: 'button', className: 'ep-math-cat', role: 'tab', text: lang(c[0])});
-			b.addEventListener('click', function () {
-				showCat(i);
-			});
-			cats.appendChild(b);
-		});
+		return moduleCache[name];
+	}
 
-		tpl.addEventListener('change', function () {
-			if (tpl.value !== '') {
-				area.value = MATH_TEMPLATES[parseInt(tpl.value, 10)][1];
-				tpl.value = '';
-				area.focus();
-				preview();
-			}
+	/*
+	 * 1.0.37: testo formattato incollato nell'area di testo (Word, Google Docs, pagine web) → BBCode.
+	 * Non si converte dentro [code], [syntax], [math], [imath] (lì si vuole il testo così com'è),
+	 * né con Ctrl+Maiusc+V (il browser passa solo il testo semplice), né con l'editor visuale attivo.
+	 */
+	function caretInLiteral() {
+		var before = ta.value.slice(0, ta.selectionStart).toLowerCase();
+		return ['code', 'syntax', 'math', 'imath'].some(function (t) {
+			var open = (before.match(new RegExp('\\[' + t + '(?:=[^\\]]*)?\\]', 'g')) || []).length;
+			var close = (before.match(new RegExp('\\[/' + t + '\\]', 'g')) || []).length;
+			return open > close;
 		});
-		area.addEventListener('input', preview);
-		modeBlock.addEventListener('change', preview);
-		modeInline.addEventListener('change', preview);
-		area.addEventListener('keydown', function (e) {
-			if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-				e.preventDefault();
-				insF.click();
-			}
-		});
-		insF.addEventListener('click', function () {
-			var tex = area.value.trim();
-			if (!tex) {
+	}
+
+	var pasteTipShown = false;
+
+	function setupPasteConvert() {
+		if (!F.paste_bbcode || !window.DOMParser) {
+			return;
+		}
+		ta.addEventListener('paste', function (e) {
+			if ((typeof wyActive === 'function' && wyActive()) || !e.clipboardData) {
 				return;
 			}
-			var tag = isBlock() ? 'math' : 'imath';
-			// la chiusura del BBCode non può comparire dentro alla formula
-			tex = tex.replace(/\[\/(i?math)\]/gi, '[ /$1]');
-			closeDialog();
-			insertText('[' + tag + ']' + tex + '[/' + tag + ']');
-		});
-
-		/* ---------------- scheda Calcolatrice ---------------- */
-		var paneC = el('div', {className: 'ep-mpane', 'data-pane': 'calc'});
-		var expr = el('input', {type: 'text', className: 'ep-calc-expr', spellcheck: 'false', autocomplete: 'off', placeholder: lang('EP_CALC_PLACEHOLDER'), 'aria-label': lang('EP_CALC_EXPR')});
-		var result = el('div', {className: 'ep-calc-result', 'aria-live': 'polite'});
-		var cerr = el('div', {className: 'ep-calc-err'});
-		var angle = el('button', {type: 'button', className: 'ep-btn ep-btn-light ep-calc-angle', title: lang('EP_CALC_ANGLE')});
-		var memInfo = el('span', {className: 'ep-calc-mem'});
-		var constSel = el('select', {'aria-label': lang('EP_CALC_CONSTANTS')}, [el('option', {value: '', text: lang('EP_CALC_CONSTANTS')})]);
-		var calcConst = window.EditorPlusCalc ? window.EditorPlusCalc.constants : {};
-		Object.keys(calcConst).forEach(function (k) {
-			var c = calcConst[k];
-			var label = lang('EP_CALC_C_' + k.toUpperCase());
-			constSel.appendChild(el('option', {value: k, text: c.name + ' — ' + label + (c.unit ? ' (' + c.unit + ')' : '')}));
-		});
-		var funcSel = el('select', {'aria-label': lang('EP_CALC_FUNCTIONS')}, [el('option', {value: '', text: lang('EP_CALC_FUNCTIONS')})]);
-		CALC_FUNCS.forEach(function (f) {
-			funcSel.appendChild(el('option', {value: f, text: f.replace('(', '(…)') + ' — ' + lang('EP_CALC_F_' + f.replace('(', '').toUpperCase())}));
-		});
-		var mem = ['MC', 'MR', 'M+', 'M−'].map(function (m) {
-			return el('button', {type: 'button', className: 'ep-btn ep-btn-light ep-calc-membtn', 'data-mem': m, text: m});
-		});
-		paneC.appendChild(el('div', {className: 'ep-calc-screen'}, [expr, result, cerr]));
-		paneC.appendChild(el('div', {className: 'ep-syn-row ep-calc-tools'}, [angle].concat(mem).concat([memInfo, el('span', {className: 'ep-raw-space'}), constSel, funcSel])));
-		var keys = el('div', {className: 'ep-calc-keys'});
-		CALC_KEYS.forEach(function (k) {
-			var label = k[0] === '#dec' ? calcDecimal() : k[0];
-			var b = el('button', {type: 'button', className: 'ep-calc-key' + (k[2] ? ' ep-calc-' + k[2] : ''), text: label});
-			b.addEventListener('mousedown', function (e) {
-				e.preventDefault();
-			});
-			b.addEventListener('click', function () {
-				press(k[1] === '#dec' ? calcDecimal() : k[1]);
-			});
-			keys.appendChild(b);
-		});
-		var hist = el('ul', {className: 'ep-calc-hist'});
-		paneC.appendChild(el('div', {className: 'ep-calc-body'}, [keys, el('div', {className: 'ep-calc-side'}, [el('div', {className: 'ep-syn-pv-title', text: lang('EP_CALC_HISTORY')}), hist])]));
-		var insRes = el('button', {type: 'button', className: 'ep-btn ep-btn-light'}, [lang('EP_CALC_INS_RESULT')]);
-		var insCalc = el('button', {type: 'button', className: 'ep-btn ep-btn-light'}, [lang('EP_CALC_INS_CALC')]);
-		var insTex = el('button', {type: 'button', className: 'ep-btn'}, [el('i', {className: 'fa fa-superscript', 'aria-hidden': 'true'}), ' ' + lang('EP_CALC_INS_FORMULA')]);
-		if (!F.math || !window.EditorPlusMath) {
-			insTex.hidden = true;
-		}
-		paneC.appendChild(el('div', {className: 'ep-raw-actions'}, [el('span', {className: 'ep-calc-tip', text: lang('EP_CALC_TIP')}), el('span', {className: 'ep-raw-space'}), insRes, insCalc, insTex]));
-		d.body.appendChild(paneC);
-
-		var calcState = {angle: storeGet('editorplus:calc-angle', 'deg') === 'rad' ? 'rad' : 'deg', ans: {re: 0, im: 0}, mem: null, last: null};
-
-		function calcOpts() {
-			return {angle: calcState.angle, ans: calcState.ans, decimal: calcDecimal()};
-		}
-
-		function showAngle() {
-			angle.textContent = calcState.angle === 'deg' ? 'DEG' : 'RAD';
-		}
-
-		function showMem() {
-			memInfo.textContent = calcState.mem ? 'M = ' + window.EditorPlusCalc.format(calcState.mem, {decimal: calcDecimal()}) : '';
-		}
-
-		function evaluate(commit) {
-			var src = expr.value.trim();
-			cerr.textContent = '';
-			if (!src) {
-				result.textContent = '';
-				calcState.last = null;
-				refreshIns();
-				return null;
-			}
-			var r = window.EditorPlusCalc.calc(src, calcOpts());
-			if (!r.ok) {
-				calcState.last = null;
-				// mentre si scrive un'espressione incompleta non si segnala nulla: solo al tasto =
-				if (commit || !/^(INCOMPLETE|PAREN|EMPTY)$/.test(r.error)) {
-					cerr.textContent = lang('EP_CALC_ERR_' + r.error) + (r.detail ? ' (' + r.detail + ')' : '');
-				}
-				result.textContent = '';
-				refreshIns();
-				return null;
-			}
-			result.textContent = '= ' + r.text;
-			calcState.last = {src: src, r: r};
-			refreshIns();
-			if (commit) {
-				calcState.ans = r.value;
-				addHistory(src, r);
-			}
-			return r;
-		}
-
-		function refreshIns() {
-			insRes.disabled = insCalc.disabled = insTex.disabled = !calcState.last;
-		}
-
-		function addHistory(src, r) {
-			var li = el('li', {tabindex: '0', title: lang('EP_CALC_REUSE')}, [el('span', {className: 'ep-calc-hexpr', text: src}), el('strong', {text: '= ' + r.text})]);
-			li.addEventListener('click', function () {
-				expr.value = src;
-				expr.focus();
-				evaluate(false);
-			});
-			hist.insertBefore(li, hist.firstChild);
-			while (hist.children.length > 20) {
-				hist.removeChild(hist.lastChild);
-			}
-		}
-
-		function insertAtCaret(text) {
-			var s0 = expr.selectionStart === null ? expr.value.length : expr.selectionStart;
-			var s1 = expr.selectionEnd === null ? s0 : expr.selectionEnd;
-			expr.value = expr.value.slice(0, s0) + text + expr.value.slice(s1);
-			var c = s0 + text.length;
-			expr.focus();
-			expr.setSelectionRange(c, c);
-		}
-
-		function press(k) {
-			if (k === '#clear') {
-				expr.value = '';
-			} else if (k === '#back') {
-				var s0 = expr.selectionStart, s1 = expr.selectionEnd;
-				if (s0 !== s1) {
-					expr.value = expr.value.slice(0, s0) + expr.value.slice(s1);
-					expr.setSelectionRange(s0, s0);
-				} else if (s0 > 0) {
-					expr.value = expr.value.slice(0, s0 - 1) + expr.value.slice(s0);
-					expr.setSelectionRange(s0 - 1, s0 - 1);
-				}
-				expr.focus();
-			} else if (k === '#neg') {
-				expr.value = expr.value ? '-(' + expr.value + ')' : '-';
-				expr.focus();
-			} else if (k === '#eq') {
-				var r = evaluate(true);
-				if (r) {
-					expr.select();
-				}
+			var html = e.clipboardData.getData('text/html');
+			var plain = e.clipboardData.getData('text/plain');
+			// niente formattazione (o solo un'immagine copiata dal disco): incolla normale del browser
+			if (!html || !/<(b|strong|i|em|u|s|strike|del|a|font|span|p|div|ul|ol|li|h[1-6]|blockquote|pre|img|table|sup|sub)\b/i.test(html) || caretInLiteral()) {
 				return;
-			} else {
-				insertAtCaret(k);
 			}
-			evaluate(false);
-		}
-
-		expr.addEventListener('input', function () {
-			evaluate(false);
-		});
-		expr.addEventListener('keydown', function (e) {
-			if (e.key === 'Enter') {
-				e.preventDefault();
-				press('#eq');
+			e.preventDefault();
+			var start = ta.selectionStart, end = ta.selectionEnd;
+			var restoreCaret = function () {
+				ta.focus();
+				ta.setSelectionRange(start, end);
+			};
+			var jobs = [loadModule('paste')];
+			if (!window.EditorPlusCleanPaste) {
+				jobs.push(loadScriptOnce('editorplus_bbrules.js'));
 			}
-		});
-		angle.addEventListener('click', function () {
-			calcState.angle = calcState.angle === 'deg' ? 'rad' : 'deg';
-			storeSet('editorplus:calc-angle', calcState.angle);
-			showAngle();
-			evaluate(false);
-		});
-		mem.forEach(function (b) {
-			b.addEventListener('click', function () {
-				var m = b.getAttribute('data-mem');
-				var cur = calcState.last ? calcState.last.r.value : null;
-				if (m === 'MC') {
-					calcState.mem = null;
-				} else if (m === 'MR') {
-					if (calcState.mem) {
-						insertAtCaret('(' + window.EditorPlusCalc.format(calcState.mem, {decimal: '.'}).replace(/ /g, '').replace('−', '-') + ')');
-						evaluate(false);
-					}
-				} else if (cur) {
-					var base = calcState.mem || {re: 0, im: 0};
-					var sign = m === 'M+' ? 1 : -1;
-					calcState.mem = {re: base.re + sign * cur.re, im: base.im + sign * cur.im};
+			Promise.all(jobs).then(function (r) {
+				var bb = r[0].convert(html);
+				restoreCaret();
+				insertText(bb || plain);
+				if (!pasteTipShown) {
+					pasteTipShown = true;
+					toast(lang('EP_PASTE_CONVERTED'), 'info');
 				}
-				showMem();
+			}).catch(function () {
+				// qualcosa non va: si incolla il testo semplice, così non si perde nulla
+				restoreCaret();
+				insertText(plain);
 			});
 		});
-		constSel.addEventListener('change', function () {
-			if (constSel.value) {
-				insertAtCaret(constSel.value);
-				constSel.value = '';
-				evaluate(false);
-			}
-		});
-		funcSel.addEventListener('change', function () {
-			if (funcSel.value) {
-				insertAtCaret(funcSel.value);
-				funcSel.value = '';
-				evaluate(false);
-			}
-		});
-		insRes.addEventListener('click', function () {
-			if (calcState.last) {
-				closeDialog();
-				insertText(calcState.last.r.text);
-			}
-		});
-		insCalc.addEventListener('click', function () {
-			if (calcState.last) {
-				closeDialog();
-				insertText(calcState.last.src + ' = ' + calcState.last.r.text);
-			}
-		});
-		insTex.addEventListener('click', function () {
-			if (calcState.last) {
-				closeDialog();
-				insertText('[math]' + calcState.last.r.tex + ' = ' + calcState.last.r.resultTex + '[/math]');
-			}
-		});
-
-		function showTab(name) {
-			if ((name === 'formula' && tabF.hidden) || (name === 'calc' && tabC.hidden)) {
-				name = tabF.hidden ? 'calc' : 'formula';
-			}
-			[tabF, tabC].forEach(function (t) {
-				var on = t.getAttribute('data-tab') === name;
-				t.classList.toggle('ep-on', on);
-				t.setAttribute('aria-selected', on ? 'true' : 'false');
-			});
-			paneF.hidden = name !== 'formula';
-			paneC.hidden = name !== 'calc';
-			mathDlg.tab = name;
-			// la griglia dei simboli si prepara la prima volta che si vede la scheda Formula, da qualunque parte si arrivi
-			if (name === 'formula' && !mathDlg.catShown) {
-				mathDlg.catShown = true;
-				showCat(0);
-			}
-			(name === 'formula' ? area : expr).focus();
-		}
-		tabF.addEventListener('click', function () {
-			showTab('formula');
-		});
-		tabC.addEventListener('click', function () {
-			showTab('calc');
-		});
-
-		showAngle();
-		showMem();
-		refreshIns();
-		mathDlg = {dialog: d, area: area, expr: expr, preview: preview, showTab: showTab, showCat: showCat, evaluate: evaluate, tab: 'formula'};
-		return mathDlg;
 	}
 
 	function openMath(tab) {
-		mathDlg = mathDlg || buildMathDialog();
-		var selected = (typeof wy !== 'undefined' && wy.on) ? '' : ta.value.slice(ta.selectionStart, ta.selectionEnd);
-		mathDlg.dialog.onOpen = function () {
-			mathDlg.showTab(tab);
-			if (tab === 'formula') {
-				if (selected) {
-					// una formula già scritta ([math]…[/math] o LaTeX) si riprende per modificarla
-					var m = /^\[(i?math)\]([\s\S]*)\[\/\1\]$/i.exec(selected.trim());
-					mathDlg.area.value = m ? m[2] : selected;
-				}
-				mathDlg.preview();
-			} else if (selected && !/\n/.test(selected)) {
-				mathDlg.expr.value = selected;
-				mathDlg.evaluate(false);
-			}
-		};
-		showDialog(mathDlg.dialog);
+		// il motore della calcolatrice serve solo se la calcolatrice è accesa
+		var extra = F.calc && !window.EditorPlusCalc ? [loadScriptOnce('editorplus_calc.js')] : [];
+		loadModule('math', extra).then(function (m) {
+			m.open(tab);
+		}, function () {});
 	}
 
+	function openColor() {
+		loadModule('color').then(function (m) {
+			m.open();
+		}, function () {});
+	}
+
+	function printMessage(btn, state) {
+		loadModule('print').then(function (m) {
+			m.print(btn, state);
+		}, function () {});
+	}
 
 	/* ------------------------------------------------------------------ */
 	/* 1.0.31: selettore del colore con sfumature (+ tavolozza classica)   */
@@ -4070,279 +3849,6 @@
 		return {r: 255, g: 255, b: 255};
 	}
 
-	function recentColors() {
-		var list = storeGet(COLOR_RECENT_KEY, []);
-		return Array.isArray(list) ? list.filter(function (c) {
-			return !!hexToRgb(c);
-		}).slice(0, 12) : [];
-	}
-
-	function rememberColor(hex) {
-		var list = recentColors().filter(function (c) {
-			return c.toLowerCase() !== hex.toLowerCase();
-		});
-		list.unshift(hex.toLowerCase());
-		storeSet(COLOR_RECENT_KEY, list.slice(0, 12));
-	}
-
-	var colorDlg = null;
-
-	function swatch(hex, cls, title) {
-		var b = el('button', {type: 'button', className: 'ep-sw' + (cls ? ' ' + cls : ''), title: title || hex, 'data-color': hex});
-		b.style.backgroundColor = hex;
-		b.addEventListener('mousedown', function (e) {
-			e.preventDefault();
-		});
-		return b;
-	}
-
-	function buildColorDialog() {
-		var d = makeDialog(lang('EP_COLOR_TITLE'), 'ep-color-dialog');
-		var classicOn = F.color_classic !== false;
-		var tabS = el('button', {type: 'button', className: 'ep-mtab ep-on', 'data-tab': 'shades'}, [el('i', {className: 'fa fa-tint', 'aria-hidden': 'true'}), ' ' + lang('EP_COLOR_TAB_SHADES')]);
-		var tabC = el('button', {type: 'button', className: 'ep-mtab', 'data-tab': 'classic'}, [el('i', {className: 'fa fa-th', 'aria-hidden': 'true'}), ' ' + lang('EP_COLOR_TAB_CLASSIC')]);
-		if (!classicOn) {
-			tabC.hidden = true;
-		}
-		d.body.appendChild(el('div', {className: 'ep-mtabs', role: 'tablist'}, [tabS, tabC]));
-
-		/* ---------------- Sfumature ---------------- */
-		var paneS = el('div', {className: 'ep-mpane', 'data-pane': 'shades'});
-		var bases = el('div', {className: 'ep-sw-row ep-sw-bases', role: 'listbox', 'aria-label': lang('EP_COLOR_BASES')});
-		COLOR_BASES.forEach(function (hex) {
-			var b = swatch(hex, 'ep-sw-base');
-			b.addEventListener('click', function () {
-				setColor(hex, true);
-			});
-			bases.appendChild(b);
-		});
-		var shades = el('div', {className: 'ep-sw-row ep-sw-shades', 'aria-label': lang('EP_COLOR_SHADES')});
-		paneS.appendChild(el('div', {className: 'ep-color-label', text: lang('EP_COLOR_BASES')}));
-		paneS.appendChild(bases);
-		paneS.appendChild(el('div', {className: 'ep-color-label', text: lang('EP_COLOR_SHADES')}));
-		paneS.appendChild(shades);
-
-		// regolazione fine: quadrato (intensità × luminosità) e barra delle tinte
-		var sv = el('div', {className: 'ep-sv', tabindex: '0', role: 'slider', 'aria-label': lang('EP_COLOR_FINE')});
-		var svDot = el('span', {className: 'ep-sv-dot'});
-		sv.appendChild(svDot);
-		var hue = el('input', {type: 'range', min: '0', max: '359', step: '1', className: 'ep-hue', 'aria-label': lang('EP_COLOR_HUE')});
-		var hexIn = el('input', {type: 'text', className: 'ep-hex', maxlength: '7', spellcheck: 'false', 'aria-label': lang('EP_COLOR_HEX')});
-		var drop = el('button', {type: 'button', className: 'ep-btn ep-btn-light', title: lang('EP_COLOR_EYEDROPPER')}, [el('i', {className: 'fa fa-eyedropper', 'aria-hidden': 'true'})]);
-		if (!window.EyeDropper) {
-			drop.hidden = true;
-		}
-		var sample = el('div', {className: 'ep-color-sample'});
-		var warn = el('div', {className: 'ep-color-warn', role: 'status'});
-		var recent = el('div', {className: 'ep-sw-row ep-sw-recent'});
-		var recentBox = el('div', {}, [el('div', {className: 'ep-color-label', text: lang('EP_COLOR_RECENT')}), recent]);
-		paneS.appendChild(el('div', {className: 'ep-color-fine'}, [
-			sv,
-			el('div', {className: 'ep-color-side'}, [
-				hue,
-				el('div', {className: 'ep-syn-row'}, [hexIn, drop]),
-				sample,
-				warn
-			])
-		]));
-		paneS.appendChild(recentBox);
-		var apply = el('button', {type: 'button', className: 'ep-btn'}, [el('i', {className: 'fa fa-tint', 'aria-hidden': 'true'}), ' ' + lang('EP_COLOR_APPLY')]);
-		paneS.appendChild(el('div', {className: 'ep-raw-actions'}, [el('span', {className: 'ep-calc-tip', text: lang('EP_COLOR_TIP')}), el('span', {className: 'ep-raw-space'}), apply]));
-		d.body.appendChild(paneS);
-
-		/* ---------------- Classica (la tavolozza di phpBB) ---------------- */
-		var paneC = el('div', {className: 'ep-mpane', 'data-pane': 'classic', hidden: true});
-		var grid = el('div', {className: 'ep-classic-grid'});
-		var hexes = ['00', '40', '80', 'BF', 'FF'];
-		hexes.forEach(function (r) {
-			hexes.forEach(function (g) {
-				hexes.forEach(function (b) {
-					var hex = '#' + r + g + b;
-					var sw = swatch(hex, 'ep-sw-classic');
-					sw.addEventListener('click', function () {
-						insertColor(hex);
-					});
-					grid.appendChild(sw);
-				});
-			});
-		});
-		paneC.appendChild(el('p', {className: 'ep-calc-tip', text: lang('EP_COLOR_CLASSIC_TIP')}));
-		paneC.appendChild(grid);
-		d.body.appendChild(paneC);
-
-		var state = {h: 210, s: 0.8, v: 0.8, hex: '#1e88e5', text: ''};
-
-		function paintRecent() {
-			recent.textContent = '';
-			var list = recentColors();
-			recentBox.hidden = !list.length;
-			list.forEach(function (hex) {
-				var b = swatch(hex, 'ep-sw-small');
-				b.addEventListener('click', function () {
-					setColor(hex, true);
-				});
-				recent.appendChild(b);
-			});
-		}
-
-		function paintShades(fromHex) {
-			shades.textContent = '';
-			colorShades(fromHex).forEach(function (hex) {
-				var b = swatch(hex, 'ep-sw-shade');
-				b.addEventListener('click', function () {
-					setColor(hex, false);
-				});
-				shades.appendChild(b);
-			});
-		}
-
-		/* aggiorna tutto il pannello; baseChange = true ricostruisce anche le sfumature */
-		function setColor(hex, baseChange, fromFine) {
-			var rgb = hexToRgb(hex);
-			if (!rgb) {
-				return;
-			}
-			hex = rgbToHex(rgb);
-			state.hex = hex;
-			if (!fromFine) {
-				var hsv = rgbToHsv(rgb);
-				// per i grigi si tiene la tinta di prima (altrimenti la barra salterebbe sul rosso)
-				if (hsv.s > 0.02) {
-					state.h = hsv.h;
-				}
-				state.s = hsv.s;
-				state.v = hsv.v;
-				hue.value = String(Math.round(state.h));
-			}
-			if (baseChange) {
-				paintShades(hex);
-			}
-			sv.style.backgroundColor = rgbToHex(hsvToRgb(state.h, 1, 1));
-			svDot.style.left = (state.s * 100) + '%';
-			svDot.style.top = ((1 - state.v) * 100) + '%';
-			svDot.style.backgroundColor = hex;
-			if (document.activeElement !== hexIn) {
-				hexIn.value = hex;
-			}
-			sample.style.color = hex;
-			sample.style.backgroundColor = rgbToHex(postBackground());
-			var ratio = contrast(rgb, postBackground());
-			warn.textContent = ratio < 3 ? lang('EP_COLOR_LOW_CONTRAST').replace('%s', ratio.toFixed(1).replace('.', lang('EP_CALC_DECIMAL') === ',' ? ',' : '.')) : '';
-			Array.prototype.forEach.call(d.body.querySelectorAll('.ep-sw'), function (b) {
-				b.classList.toggle('ep-sw-on', b.getAttribute('data-color').toLowerCase() === hex);
-			});
-		}
-
-		function fineFromPointer(e) {
-			var r = sv.getBoundingClientRect();
-			state.s = clamp((e.clientX - r.left) / r.width, 0, 1);
-			state.v = clamp(1 - (e.clientY - r.top) / r.height, 0, 1);
-			setColor(rgbToHex(hsvToRgb(state.h, state.s, state.v)), false, true);
-		}
-		sv.addEventListener('pointerdown', function (e) {
-			e.preventDefault();
-			sv.setPointerCapture(e.pointerId);
-			fineFromPointer(e);
-			var move = function (ev) {
-				fineFromPointer(ev);
-			};
-			var up = function () {
-				sv.removeEventListener('pointermove', move);
-				sv.removeEventListener('pointerup', up);
-				paintShades(state.hex);
-			};
-			sv.addEventListener('pointermove', move);
-			sv.addEventListener('pointerup', up);
-		});
-		sv.addEventListener('keydown', function (e) {
-			var step = e.shiftKey ? 0.1 : 0.02;
-			var k = {ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step]}[e.key];
-			if (k) {
-				e.preventDefault();
-				state.s = clamp(state.s + k[0], 0, 1);
-				state.v = clamp(state.v + k[1], 0, 1);
-				setColor(rgbToHex(hsvToRgb(state.h, state.s, state.v)), true, true);
-			}
-		});
-		hue.addEventListener('input', function () {
-			state.h = parseInt(hue.value, 10);
-			if (state.s < 0.05) {
-				state.s = 0.75;
-			}
-			setColor(rgbToHex(hsvToRgb(state.h, state.s, state.v)), true, true);
-		});
-		hexIn.addEventListener('input', function () {
-			var v = hexIn.value.trim();
-			if (v && v[0] !== '#') {
-				v = '#' + v;
-			}
-			if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(v)) {
-				hexIn.classList.remove('ep-bad');
-				setColor(v, true);
-			} else {
-				hexIn.classList.add('ep-bad');
-			}
-		});
-		hexIn.addEventListener('keydown', function (e) {
-			if (e.key === 'Enter') {
-				e.preventDefault();
-				apply.click();
-			}
-		});
-		drop.addEventListener('click', function () {
-			new window.EyeDropper().open().then(function (r) {
-				setColor(r.sRGBHex, true);
-			}, function () { /* annullato */ });
-		});
-		apply.addEventListener('click', function () {
-			insertColor(state.hex);
-		});
-
-		function showTab(name) {
-			if (name === 'classic' && tabC.hidden) {
-				name = 'shades';
-			}
-			[tabS, tabC].forEach(function (t) {
-				var on = t.getAttribute('data-tab') === name;
-				t.classList.toggle('ep-on', on);
-				t.setAttribute('aria-selected', on ? 'true' : 'false');
-			});
-			paneS.hidden = name !== 'shades';
-			paneC.hidden = name !== 'classic';
-			storeSet('editorplus:color-tab', name);
-		}
-		tabS.addEventListener('click', function () {
-			showTab('shades');
-		});
-		tabC.addEventListener('click', function () {
-			showTab('classic');
-		});
-
-		colorDlg = {dialog: d, state: state, setColor: setColor, paintRecent: paintRecent, sample: sample, showTab: showTab};
-		return colorDlg;
-	}
-
-	function insertColor(hex) {
-		rememberColor(hex);
-		closeDialog();
-		wrap('[color=' + hex + ']', '[/color]');
-	}
-
-	function openColor() {
-		colorDlg = colorDlg || buildColorDialog();
-		var sel = (typeof wy !== 'undefined' && wy.on) ? '' : ta.value.slice(ta.selectionStart, ta.selectionEnd);
-		// un [color=…] già selezionato: si riparte da quel colore
-		var m = /^\[color=(#[0-9a-f]{3,6})\]/i.exec(sel);
-		var start = m ? m[1] : (recentColors()[0] || colorDlg.state.hex);
-		colorDlg.dialog.onOpen = function () {
-			colorDlg.sample.textContent = sel ? sel.replace(/\[\/?[^\]]+\]/g, '').slice(0, 120) || lang('EP_COLOR_SAMPLE') : lang('EP_COLOR_SAMPLE');
-			colorDlg.paintRecent();
-			colorDlg.setColor(start, true);
-			colorDlg.showTab(storeGet('editorplus:color-tab', 'shades'));
-		};
-		showDialog(colorDlg.dialog);
-	}
-
 	/* il pulsante del colore (phpBB e ABBC3) apre il nuovo pannello */
 	function setupColor() {
 		if (!F.color) {
@@ -4412,8 +3918,46 @@
 		return lang('EP_CALC_DECIMAL') === ',' ? s.replace('.', ',') : s;
 	}
 
+	/* l'elemento accanto (prima o dopo), saltando spazi e a capo: è un altro allegato? */
+	function attachmentNeighbour(box, dir) {
+		for (var n = box[dir]; n; n = n[dir]) {
+			if ((n.nodeType === 3 && !n.nodeValue.trim()) || n.nodeName === 'BR' || n.nodeType === 8) {
+				continue;
+			}
+			return n.nodeType === 1 && n.classList.contains('inline-attachment');
+		}
+		return false;
+	}
+
 	function renderAttachments(root, info) {
 		info = info || {};
+		// Allegati vicini (separati solo da spazi o a capo) raccolti in una galleria: un blocco a sé,
+		// dentro il quale si affiancano; il testo prima e dopo resta sopra e sotto.
+		// Un allegato da solo va sotto il testo, su una riga sua.
+		Array.prototype.forEach.call(root.querySelectorAll('.inline-attachment'), function (box) {
+			if (!box.parentNode || box.parentNode.classList.contains('ep-att-gallery') || !attachmentNeighbour(box, 'nextSibling')) {
+				return;
+			}
+			var gallery = document.createElement('div');
+			gallery.className = 'ep-att-gallery';
+			box.parentNode.insertBefore(gallery, box);
+			var n = box;
+			while (n) {
+				var next = n.nextSibling;
+				if (n.nodeType === 1 && n.classList.contains('inline-attachment')) {
+					gallery.appendChild(n);
+				} else if ((n.nodeType === 3 && !n.nodeValue.trim()) || n.nodeName === 'BR' || n.nodeType === 8) {
+					// spazi e a capo tra un allegato e l'altro: via; quelli dopo l'ultimo restano al loro posto
+					if (!attachmentNeighbour(n, 'nextSibling') && !(next && next.nodeType === 1 && next.classList.contains('inline-attachment'))) {
+						break;
+					}
+					n.parentNode.removeChild(n);
+				} else {
+					break;
+				}
+				n = next;
+			}
+		});
 		Array.prototype.forEach.call(root.querySelectorAll('.inline-attachment:not(.ep-att-done)'), function (box) {
 			var index = null;
 			for (var n = box.firstChild; n; n = n.nextSibling) {
@@ -4473,6 +4017,7 @@
 			box.appendChild(card);
 		});
 	}
+
 
 	function openSyntax() {
 		synDlg = synDlg || buildSyntaxDialog();
@@ -4602,6 +4147,30 @@
 		ta.parentNode.insertBefore(status, ta.nextSibling);
 	}
 
+	/*
+	 * 1.0.37: lunghezza contata ESATTAMENTE come phpBB (message_parser, modalità "post"): testo con i BBCode,
+	 * a capo uniformati e spazi esterni tolti, dopo la trasformazione di & < > " in entità HTML
+	 * (un & vale 5 caratteri), contando le lettere vere (un'emoji vale 1).
+	 */
+	function phpbbLength(text) {
+		var t = String(text).replace(/\r\n?/g, '\n').trim();
+		var n = Array.from ? Array.from(t).length : t.length;
+		var extra = {'&': 4, '<': 3, '>': 3, '"': 5};
+		for (var i = 0; i < t.length; i++) {
+			if (extra[t[i]]) {
+				n += extra[t[i]];
+			}
+		}
+		return n;
+	}
+
+	function groupDigits(n) {
+		var sep = lang('EP_CALC_DECIMAL') === ',' ? '.' : ',';
+		return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, sep);
+	}
+
+	var counterLimit = null;
+
 	function updateCounter() {
 		if (!F.counter || !counter) {
 			return;
@@ -4609,11 +4178,53 @@
 		var text = ta.value;
 		var chars = Array.from ? Array.from(text).length : text.length;
 		var words = text.trim() ? text.trim().split(/\s+/).length : 0;
+		counter.textContent = groupDigits(chars) + ' ' + lang('EP_CHARS') + ' · ' + words + ' ' + lang('EP_WORDS');
 		var max = cfg.maxChars || 0;
-		counter.textContent = (max ? chars + ' / ' + max : chars) + ' ' + lang('EP_CHARS') + ' · ' + words + ' ' + lang('EP_WORDS');
-		var over = max && chars > max;
-		counter.classList.toggle('ep-over', !!over);
-		counter.title = over ? format(lang('EP_CHARS_OVER'), max) : '';
+		if (!counterLimit) {
+			counterLimit = el('span', {className: 'ep-limit', 'aria-live': 'polite'});
+			counter.parentNode.insertBefore(counterLimit, counter.nextSibling);
+		}
+		var used = max ? phpbbLength(text) : 0;
+		var state = !max ? '' : (used > max ? 'over' : (used >= max * 0.9 ? 'near' : ''));
+		counter.classList.toggle('ep-over', state === 'over');
+		counterLimit.className = 'ep-limit' + (state ? ' ep-limit-' + state : '');
+		counterLimit.textContent = state === 'over' ? lang('EP_LIMIT_OVER').replace('%1$s', groupDigits(used - max)).replace('%2$s', groupDigits(max))
+			: (state === 'near' ? lang('EP_LIMIT_NEAR').replace('%1$s', groupDigits(max - used)).replace('%2$s', groupDigits(max)) : '');
+		counter.title = max ? lang('EP_LIMIT_TITLE').replace('%1$s', groupDigits(used)).replace('%2$s', groupDigits(max)) : '';
+	}
+
+	/* all'invio, se il messaggio supera il limite: avviso subito (phpBB lo rifiuterebbe) */
+	function overLimit() {
+		var max = cfg.maxChars || 0;
+		return max && phpbbLength(ta.value) > max ? phpbbLength(ta.value) - max : 0;
+	}
+
+	/*
+	 * Invio o anteprima di un messaggio oltre il limite: si ferma prima (phpBB lo rifiuterebbe comunque)
+	 * e la bozza resta. Registrato in fase di cattura: gira prima di chi cancella la bozza all'invio.
+	 */
+	function setupLimitGuard() {
+		if (!form || !(cfg.maxChars > 0)) {
+			return;
+		}
+		var clicked = null;
+		form.addEventListener('click', function (e) {
+			var b = e.target.closest && e.target.closest('input[type="submit"], button[type="submit"]');
+			if (b) {
+				clicked = b.getAttribute('name');
+			}
+		}, true);
+		form.addEventListener('submit', function (e) {
+			var name = (e.submitter && e.submitter.getAttribute('name')) || clicked;
+			var over = overLimit();
+			if ((name === 'post' || name === 'preview') && over) {
+				e.preventDefault();
+				e.stopImmediatePropagation();
+				updateCounter();
+				toast(lang('EP_LIMIT_BLOCK').replace('%1$s', groupDigits(over)).replace('%2$s', groupDigits(cfg.maxChars)), 'error');
+				ta.focus();
+			}
+		}, true);
 	}
 
 	/*
@@ -5116,7 +4727,8 @@
 	}
 
 	document.addEventListener('keydown', function (e) {
-		if (e.key !== 'Escape') {
+		// con la conferma di phpBB aperta, Esc chiude solo quella
+		if (e.key !== 'Escape' || document.documentElement.classList.contains('ep-confirm-open')) {
 			return;
 		}
 		if (openDialog) {
@@ -5159,6 +4771,8 @@
 	safely('menu per categoria', buildCategories);
 	safely('pulsanti strumenti', setupTools);
 	safely('selettore del colore', setupColor);
+	safely('limite di lunghezza', setupLimitGuard);
+	safely('incolla con formattazione', setupPasteConvert);
 	safely('riquadro faccine', hideSmileyBox);
 	safely('barra di stato', setupStatus);
 	safely('salvataggio bozza', setupAutosave);
@@ -5207,7 +4821,7 @@
 	}
 
 	window.EditorPlus = {
-		version: '1.0.34',
+		version: '1.0.42',
 		status: epState,
 		visual: function () {
 			return typeof wy !== 'undefined' && wy.on && !!wy.editor;

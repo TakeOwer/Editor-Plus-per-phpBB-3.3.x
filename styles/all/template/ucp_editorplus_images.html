@@ -1,0 +1,111 @@
+{% include 'ucp_header.html' %}
+<link href="{{ EP_GALLERY_CSS }}" rel="stylesheet" media="screen">
+
+<h2>{{ lang('UCP_EDITORPLUS_IMAGES') }}</h2>
+
+<div class="panel">
+	<div class="inner">
+		<p>{{ lang('UCP_EDITORPLUS_IMG_EXPLAIN') }}</p>
+
+		<div class="epg-quota">
+			<strong>{{ lang('UCP_EDITORPLUS_IMG_SPACE') ~ lang('COLON') }}</strong>
+			{{ lang('EP_IMG_USAGE', EP_COUNT, EP_BYTES) }}{% if EP_MAX_QUOTA %} · {{ lang('EP_IMG_USAGE_QUOTA', EP_MAX_QUOTA) }}{% endif %}{% if EP_MAX_COUNT %} · {{ lang('EP_IMG_USAGE_COUNT', EP_MAX_COUNT) }}{% endif %}
+			{% if EP_MAX_QUOTA %}
+				<div class="epg-quota-bar"><div class="epg-quota-fill{% if EP_QUOTA_PERCENT > 85 %} epg-quota-high{% endif %}" style="width:{{ EP_QUOTA_PERCENT }}%"></div></div>
+			{% endif %}
+			{% if EP_MAX_SIZE %}<small>{{ lang('UCP_EDITORPLUS_IMG_LIMITS', EP_MAX_SIZE) }}</small>{% endif %}
+		</div>
+
+		{% if S_EP_CAN_UPLOAD %}
+			<div id="ep-ucp-upload"></div>
+		{% else %}
+			<p class="ep-img-note ep-img-note-bad">{{ EP_NO_UPLOAD }}</p>
+		{% endif %}
+	</div>
+</div>
+
+<form id="ep-ucp-images" method="post" action="{{ U_ACTION }}">
+<div class="panel">
+	<div class="inner">
+		{% if ep_images|length %}
+			<div class="epg-toolbar">
+				{% if S_EP_CAN_DELETE %}
+					<label class="epg-btn"><input type="checkbox" data-epg-select-all> {{ lang('UCP_EDITORPLUS_IMG_SELECT_ALL') }}</label>
+					<span data-epg-selected></span>
+					<button class="epg-btn epg-btn-danger" type="submit" name="ep_delete" value="1" data-epg-needs-selection disabled><i class="icon fa-trash fa-fw" aria-hidden="true"></i> {{ lang('UCP_EDITORPLUS_IMG_DELETE_SEL') }}</button>
+					<span class="epg-spacer"></span>
+					<button class="epg-btn epg-btn-danger" type="submit" name="ep_delete_all" value="1"><i class="icon fa-trash-o fa-fw" aria-hidden="true"></i> {{ lang('UCP_EDITORPLUS_IMG_DELETE_ALL') }}</button>
+				{% endif %}
+			</div>
+
+			<div class="epg-grid" id="ep-ucp-grid">
+			{% for it in ep_images %}
+				<div class="epg-card">
+					{% if S_EP_CAN_DELETE %}<label class="epg-check"><input type="checkbox" name="ids[]" value="{{ it.ID }}" data-epg-select></label>{% endif %}
+					<button type="button" class="epg-thumb" data-epg-open="{{ it.INDEX }}" title="{{ lang('EP_IMG_ZOOM') }}"><img src="{{ it.THUMB }}" alt="{{ it.NAME }}" loading="lazy"></button>
+					<div class="epg-meta">
+						<strong title="{{ it.NAME }}">{{ it.NAME }}</strong>
+						{{ it.DIMENSIONS }} · {{ it.SIZE }}<br>{{ it.DATE }}
+					</div>
+				</div>
+			{% endfor %}
+			</div>
+
+			{% if pagination|length %}
+				<div class="action-bar bar-bottom"><div class="pagination">{% include 'pagination.html' %}</div></div>
+			{% endif %}
+		{% else %}
+			<div class="epg-empty">{{ lang('UCP_EDITORPLUS_IMG_NONE') }}</div>
+		{% endif %}
+	</div>
+</div>
+{{ S_FORM_TOKEN }}
+</form>
+
+<script>
+	window.EditorPlusGalleryLang = window.EditorPlusGalleryLang || {{ EP_GALLERY_LANG }};
+</script>
+<script src="{{ EP_GALLERY_JS }}"></script>
+<script>
+	(function () {
+		var G = window.EditorPlusGallery;
+		if (!G) {
+			return;
+		}
+		var items = {{ EP_ITEMS_JSON }};
+		var form = document.getElementById('ep-ucp-images');
+		var grid = document.getElementById('ep-ucp-grid');
+		var canDelete = {{ S_EP_CAN_DELETE ? 'true' : 'false' }};
+
+		if (grid) {
+			G.grid(grid, items, {
+				actions: function () {
+					return canDelete ? [{icon: 'fa-trash', label: G.lang('EP_IMG_DELETE'), className: 'epg-btn-danger', run: function (it) {
+						form.querySelectorAll('input[data-epg-select]').forEach(function (b) {
+							b.checked = String(b.value) === String(it.id);
+						});
+						var btn = form.querySelector('button[name="ep_delete"]');
+						btn.disabled = false;
+						btn.click();
+					}}] : [];
+				}
+			});
+		}
+
+		var box = document.getElementById('ep-ucp-upload');
+		if (box) {
+			var cfg = {{ EP_UPLOAD_JSON }};
+			cfg.url = String(cfg.url).replace(/&amp;/g, '&');
+			G.uploader(box, cfg, null, function (ok) {
+				// finiti tutti i caricamenti la pagina si aggiorna da sola, così compaiono le nuove miniature
+				if (ok) {
+					setTimeout(function () {
+						location.reload();
+					}, 1200);
+				}
+			});
+		}
+	})();
+</script>
+
+{% include 'ucp_footer.html' %}

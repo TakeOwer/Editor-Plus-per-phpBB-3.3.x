@@ -53,6 +53,13 @@ class main_module
 		$user = $phpbb_container->get('user');
 
 		$language->add_lang('ucp', 'salvocortesiano/editorplus');
+
+		if ($mode === 'images')
+		{
+			$this->images_page($config, $language, $request, $template, $user);
+			return;
+		}
+
 		$this->tpl_name = 'ucp_editorplus';
 		$this->page_title = $language->lang('UCP_EDITORPLUS_TITLE');
 
@@ -100,6 +107,109 @@ class main_module
 
 		$template->assign_vars([
 			'U_ACTION'	=> $this->u_action,
+		]);
+	}
+
+	/**
+	 * Pannello utente > Panoramica > Le mie immagini: le immagini caricate con l'editor,
+	 * con caricamento, ingrandimento, link da copiare e cancellazione.
+	 */
+	protected function images_page($config, $language, $request, $template, $user)
+	{
+		global $phpbb_container, $phpbb_root_path;
+
+		/** @var \salvocortesiano\editorplus\core\images $images */
+		$images = $phpbb_container->get('salvocortesiano.editorplus.images');
+		/** @var \phpbb\pagination $pagination */
+		$pagination = $phpbb_container->get('pagination');
+		/** @var \phpbb\controller\helper $controller_helper */
+		$controller_helper = $phpbb_container->get('controller.helper');
+
+		$this->tpl_name = 'ucp_editorplus_images';
+		$this->page_title = $language->lang('UCP_EDITORPLUS_IMAGES');
+		$user_id = (int) $user->data['user_id'];
+		$can_delete = !empty($config['editorplus_img_user_delete']);
+
+		add_form_key('salvocortesiano_editorplus_images');
+
+		if ($request->is_set_post('ep_delete') || $request->is_set_post('ep_delete_all'))
+		{
+			if (!$can_delete)
+			{
+				trigger_error('EP_IMG_ERR_NO_DELETE');
+			}
+			$all = $request->is_set_post('ep_delete_all') || $request->variable('what', '') === 'all';
+			$ids = array_values(array_filter(array_map('intval', $request->variable('ids', [0]))));
+			if (!$all && !$ids)
+			{
+				trigger_error($language->lang('UCP_EDITORPLUS_IMG_NOTHING') . '<br><br>' . $language->lang('RETURN_UCP', '<a href="' . $this->u_action . '">', '</a>'));
+			}
+
+			if (confirm_box(true))
+			{
+				$deleted = $all ? $images->delete_all($user_id) : $images->delete_images($ids, $user_id);
+				meta_refresh(3, $this->u_action);
+				trigger_error($language->lang('UCP_EDITORPLUS_IMG_DELETED', count($deleted)) . '<br><br>' . $language->lang('RETURN_UCP', '<a href="' . $this->u_action . '">', '</a>'));
+			}
+			else if (!$request->is_set_post('cancel'))
+			{
+				confirm_box(false, $all ? $language->lang('UCP_EDITORPLUS_IMG_CONFIRM_ALL') : $language->lang('UCP_EDITORPLUS_IMG_CONFIRM', count($ids)), build_hidden_fields([
+					'ep_delete'	=> 1,
+					'what'		=> $all ? 'all' : 'some',
+					'ids'		=> $ids,
+				]));
+			}
+			redirect($this->u_action);
+		}
+
+		$per_page = 48;
+		$start = max(0, $request->variable('start', 0));
+		$usage = $images->usage($user_id);
+		$limits = $images->limits($user->data);
+
+		$items = [];
+		foreach ($images->list_images($user_id, $start, $per_page) as $row)
+		{
+			$img = $images->present($row);
+			unset($img['ip']);
+			$img['date'] = $user->format_date($img['time']);
+			$img['sizeText'] = get_formatted_filesize($img['size']);
+			$items[] = $img;
+			$template->assign_block_vars('ep_images', [
+				'ID'		=> $img['id'],
+				'INDEX'		=> count($items) - 1,
+				'THUMB'		=> $img['thumb'],
+				'NAME'		=> utf8_htmlspecialchars($img['name']),
+				'DIMENSIONS'	=> $img['width'] . '×' . $img['height'],
+				'SIZE'		=> $img['sizeText'],
+				'DATE'		=> $img['date'],
+			]);
+		}
+		$pagination->generate_template_pagination($this->u_action, 'pagination', 'start', $usage['count'], $per_page, $start);
+
+		$template->assign_vars([
+			'U_ACTION'			=> $this->u_action . ($start ? '&amp;start=' . $start : ''),
+			'S_EP_CAN_DELETE'	=> $can_delete,
+			'S_EP_CAN_UPLOAD'	=> $limits['allowed'],
+			'EP_NO_UPLOAD'		=> $limits['allowed'] ? '' : $language->lang($limits['reason'] ?: 'EP_IMG_ERR_NO_GROUP'),
+			'EP_COUNT'			=> $usage['count'],
+			'EP_BYTES'			=> get_formatted_filesize($usage['bytes']),
+			'EP_MAX_COUNT'		=> $limits['max_count'],
+			'EP_MAX_QUOTA'		=> $limits['max_quota'] ? get_formatted_filesize($limits['max_quota']) : '',
+			'EP_MAX_SIZE'		=> $limits['max_size'] ? get_formatted_filesize($limits['max_size']) : '',
+			'EP_QUOTA_PERCENT'	=> $limits['max_quota'] ? min(100, (int) round($usage['bytes'] * 100 / $limits['max_quota'])) : 0,
+			'EP_ITEMS_JSON'		=> \salvocortesiano\editorplus\core\helper::safe_json($items),
+			'EP_UPLOAD_JSON'	=> \salvocortesiano\editorplus\core\helper::safe_json([
+				'url'		=> $controller_helper->route('salvocortesiano_editorplus_image_upload'),
+				'hash'		=> generate_link_hash('editorplus_images'),
+				'maxSize'	=> $limits['max_size'],
+				'maxW'		=> (int) $config['editorplus_img_max_w'],
+				'maxH'		=> (int) $config['editorplus_img_max_h'],
+				'types'		=> $images->allowed_types(),
+			]),
+			'EP_GALLERY_LANG'	=> \salvocortesiano\editorplus\core\images::js_lang($language),
+			'EP_GALLERY_JS'		=> $phpbb_root_path . 'ext/salvocortesiano/editorplus/styles/all/template/js/editorplus_gallery.js?v=' . \salvocortesiano\editorplus\core\helper::VERSION,
+			'EP_GALLERY_CSS'	=> $phpbb_root_path . 'ext/salvocortesiano/editorplus/styles/all/theme/editorplus_gallery.css?v=' . \salvocortesiano\editorplus\core\helper::VERSION,
 		]);
 	}
 }

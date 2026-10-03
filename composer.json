@@ -3,8 +3,8 @@
 	"type": "phpbb-extension",
 	"description": "Editor Plus: estende la barra di Advanced BBCode Box con menu per categorie, icone Font Awesome, emoji, GHide, combo immagini, salvataggio automatico, scorciatoie, annulla/ripeti e schermo intero.",
 	"homepage": "https://netshadows.de/ombra",
-	"version": "1.0.34",
-	"time": "2026-09-27",
+	"version": "1.0.42",
+	"time": "2026-10-02",
 	"license": "GPL-2.0-only",
 	"authors": [
 		{

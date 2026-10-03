@@ -1,0 +1,24 @@
+EDITOR PLUS 1.0.9 per phpBB 3.3.x (richiede Advanced BBCode Box 3.3.12)
+======================================================================
+
+IMPORTANTE: il BBCode [ghide] non viene mai toccato da Editor Plus. Lo fornisce un'altra
+estensione del forum; i messaggi già scritti con [ghide] continuano a funzionare.
+
+NOVITÀ DELLA 1.0.9
+- Corretto: dopo un aggiornamento il browser poteva continuare a usare il file JavaScript
+  della versione precedente (per esempio [ghide] mancava nel menu "Nascosti" anche con la
+  1.0.8 installata). Ora i file hanno la versione nel nome (?v=1.0.9) e il browser scarica
+  sempre quelli giusti.
+- Se il browser usa comunque un file di un'altra versione, gli amministratori vedono un
+  avviso sopra la barra con la soluzione.
+
+NOVITÀ DELLA 1.0.8
+- Barra giusta anche quando nella pagina ce n'è una seconda disegnata da un'altra estensione.
+- [ghide] riconosciuto anche se lo aggiunge un'estensione: pulsante nella prima riga
+  e voce nel menu "Nascosti".
+
+AGGIORNAMENTO
+1. Disabilita Editor Plus (NON "Cancella dati").
+2. Sostituisci la cartella ext/salvocortesiano/editorplus (rimetti anche data/ del pacchetto combo).
+3. Riabilita Editor Plus e svuota la cache.
+4. Apri la pagina di scrittura e premi Ctrl+F5 (solo questa volta: dalle prossime versioni non serve più).

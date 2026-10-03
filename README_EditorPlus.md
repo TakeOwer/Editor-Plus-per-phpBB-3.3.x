@@ -1,6 +1,6 @@
 # Editor Plus per phpBB 3.3
 
-![Versione](https://img.shields.io/badge/versione-1.0.42-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![Licenza](https://img.shields.io/badge/licenza-GPL--2.0-green)
+![Versione](https://img.shields.io/badge/versione-1.0.44-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![Licenza](https://img.shields.io/badge/licenza-GPL--2.0-green)
 
 **Editor Plus** (`salvocortesiano/editorplus`) potenzia la barra di scrittura di phpBB: menu per categoria, combo di immagini, faccine, icone ed emoji, colori con sfumature, anteprima dal vivo, formattazione mentre scrivi, editor visuale, bozze salvate sul server, codice colorato, formule matematiche e chimiche, calcolatrice scientifica, **immagini degli utenti in una cartella personale** (con gestione completa in ACP e nel Pannello utente) e una scheda **Check-up** che controlla da sola che tutto funzioni.
 
@@ -673,6 +673,8 @@ Prima di tutto: **Check-up → Esegui le prove dal vivo**. Quasi sempre la riga 
 | "Immagine troppo pesante" anche se piccola | limite di PHP del server più basso | il Check-up mostra `upload_max_filesize` e `post_max_size`: chiedi all'hosting di alzarli |
 | "Immagine troppo grande da elaborare" | memoria di PHP insufficiente per foto enormi | il browser di solito le rimpicciolisce prima; altrimenti alza `memory_limit` |
 | Immagini sul disco ma non in ACP | "Cancella dati" e reinstallazione, o file copiati a mano | Check-up → **Riallinea immagini e cartelle** |
+| La barra di Editor Plus non compare e resta l'editor di phpBB (senza errori) | la cache delle rotte di phpBB non contiene ancora gli indirizzi di Editor Plus (succede durante un aggiornamento) | ACP → Generale → **Svuota la cache**. Il Check-up non sempre se ne accorge, perché l'ACP risolve gli indirizzi per conto suo |
+| Nel registro amministratori compare un nome come `UCP_EDITORPLUS_IMAGES` | voce scritta da una versione precedente alla 1.0.43 | aggiorna alla 1.0.43 o successiva: riabilitando l'estensione le voci vengono corrette |
 | Le conferme compaiono come riquadro grigio del browser | lo stile del forum non ha la finestra di conferma di phpBB (`#phpbb_confirm`, presente in prosilver e negli stili derivati) | è il ripiego previsto: la conferma funziona comunque; con uno stile standard compare quella di phpBB |
 | Il pulsante GHide non compare | `[ghide]` non riconosciuto | ACP → GHide → "Forza riconoscimento" (se ntvy95/hide è installata) |
 
@@ -690,7 +692,7 @@ ext/salvocortesiano/editorplus/
 ├── cron/task/              pulizia automatica giornaliera
 ├── event/                  collegamento con phpBB (barra, BBCode, pagine)
 ├── language/it, en/        tutti i testi (italiano e inglese)
-├── migrations/             aggiornamenti del database, dalla 1.0.0 alla 1.0.39
+├── migrations/             aggiornamenti del database, dalla 1.0.0 alla 1.0.43
 ├── styles/all/template/    barra, finestre e script:
 │   ├── js/editorplus.js          la barra e gli strumenti di base
 │   ├── js/editorplus_mod_*.js    moduli scaricati solo al primo uso:
@@ -755,6 +757,8 @@ ext/salvocortesiano/editorplus/
 | 1.0.40 | **Impostazioni di stampa** con anteprima della pagina A4 e numero di pagine: carattere, dimensione, dimensioni del messaggio, interlinea, righe vuote, margini, immagini, intestazione, colori; la pagina di stampa non usa più lo stile del forum (che poteva ingrandire tutto: 8 pagine per 15 righe) |
 | 1.0.41 | **"Adatta a 1 pagina A4"** nelle impostazioni di stampa · anteprima dal vivo: un allegato dopo il testo va sotto e non più accanto (galleria solo tra allegati vicini) · un'immagine eliminata dal caricatore viene tolta anche dal messaggio, in tutte le forme del link (annullabile con Ctrl+Z) |
 | 1.0.42 | Tutte le conferme dell'estensione usano la **finestra di conferma integrata di phpBB** (stesso aspetto dello stile del forum e dell'ACP) invece del riquadro del browser: eliminazione di un'immagine dall'editor (anche dall'ingrandimento), ripristino di KaTeX e scaricamento di una nuova serie nel Check-up. Esc, "No" e il clic fuori annullano senza chiudere la finestra sottostante |
+| 1.0.43 | Registro amministratori: le voci "Modulo aggiunto" dei moduli del Pannello utente mostravano il segnaposto (`UCP_EDITORPLUS_IMAGES`, `UCP_EDITORPLUS_TITLE`) invece del nome. Ora i nomi sono tradotti anche nell'ACP, e l'aggiornamento corregge le voci già presenti nel registro (nella lingua predefinita del forum) |
+| 1.0.44 | **Correzione importante:** se la cache delle rotte di phpBB non conteneva gli indirizzi di Editor Plus (per esempio durante un aggiornamento dell'estensione), **ogni pagina del forum** cadeva con l'errore fatale "Unable to generate a URL for the named route salvocortesiano_editorplus_render". Ora la pagina funziona sempre: in quel caso Editor Plus non si attiva e resta l'editor di phpBB, finché la cache non viene rigenerata · ai bot (motori di ricerca) l'editor non viene più preparato: meno lavoro su ogni pagina che visitano |
 
 ---
 

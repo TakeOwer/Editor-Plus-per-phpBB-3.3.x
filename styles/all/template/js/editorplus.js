@@ -89,7 +89,7 @@
 	}
 
 	var cfg = window.EditorPlusConfig || {};
-	var epState = {version: '1.0.42', ready: false, config: !!(cfg && cfg.features), errors: []};
+	var epState = {version: '1.0.44', ready: false, config: !!(cfg && cfg.features), errors: []};
 
 	function report(step, err) {
 		epState.errors.push(step + ': ' + (err && err.message ? err.message : err));
@@ -4821,7 +4821,7 @@
 	}
 
 	window.EditorPlus = {
-		version: '1.0.42',
+		version: '1.0.44',
 		status: epState,
 		visual: function () {
 			return typeof wy !== 'undefined' && wy.on && !!wy.editor;

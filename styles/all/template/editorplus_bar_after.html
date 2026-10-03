@@ -1,6 +1,6 @@
 {# Editor Plus: risorse, combo e configurazione della barra #}
-{% INCLUDECSS '@salvocortesiano_editorplus/editorplus.css?v=1.0.42' %}
-{% if EDITORPLUS_GALLERY_LANG %}{% INCLUDECSS '@salvocortesiano_editorplus/editorplus_gallery.css?v=1.0.42' %}{% endif %}
+{% INCLUDECSS '@salvocortesiano_editorplus/editorplus.css?v=1.0.44' %}
+{% if EDITORPLUS_GALLERY_LANG %}{% INCLUDECSS '@salvocortesiano_editorplus/editorplus_gallery.css?v=1.0.44' %}{% endif %}
 
 {% if S_EDITORPLUS_COMBOS %}
 	{% include '@salvocortesiano_editorplus/editorplus_image_combos.html' %}
@@ -74,10 +74,10 @@
 	{% if EDITORPLUS_GALLERY_LANG %}window.EditorPlusGalleryLang = {{ EDITORPLUS_GALLERY_LANG }};{% endif %}
 </script>
 {% if S_EDITORPLUS_WYSIWYG %}
-	{% INCLUDECSS '@salvocortesiano_editorplus/sceditor.min.css?v=1.0.42' %}
-	{% INCLUDEJS '@salvocortesiano_editorplus/js/sceditor/sceditor.min.js?v=1.0.42' %}
-	{% INCLUDEJS '@salvocortesiano_editorplus/js/sceditor/sceditor.bbcode.min.js?v=1.0.42' %}
-	{% INCLUDEJS '@salvocortesiano_editorplus/js/editorplus_bbrules.js?v=1.0.42' %}
-	<script>window.EditorPlusConfig.wyContentCss = '{{ (ROOT_PATH ~ 'ext/salvocortesiano/editorplus/styles/all/theme/editorplus_wysiwyg_content.css?v=1.0.42')|e('js') }}';</script>
+	{% INCLUDECSS '@salvocortesiano_editorplus/sceditor.min.css?v=1.0.44' %}
+	{% INCLUDEJS '@salvocortesiano_editorplus/js/sceditor/sceditor.min.js?v=1.0.44' %}
+	{% INCLUDEJS '@salvocortesiano_editorplus/js/sceditor/sceditor.bbcode.min.js?v=1.0.44' %}
+	{% INCLUDEJS '@salvocortesiano_editorplus/js/editorplus_bbrules.js?v=1.0.44' %}
+	<script>window.EditorPlusConfig.wyContentCss = '{{ (ROOT_PATH ~ 'ext/salvocortesiano/editorplus/styles/all/theme/editorplus_wysiwyg_content.css?v=1.0.44')|e('js') }}';</script>
 {% endif %}
-{% INCLUDEJS '@salvocortesiano_editorplus/js/editorplus.js?v=1.0.42' %}
+{% INCLUDEJS '@salvocortesiano_editorplus/js/editorplus.js?v=1.0.44' %}

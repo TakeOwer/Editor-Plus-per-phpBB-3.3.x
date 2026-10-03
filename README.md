@@ -1,6 +1,6 @@
 # Editor Plus for phpBB 3.3
 
-![Version](https://img.shields.io/badge/version-1.0.42-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![License](https://img.shields.io/badge/license-GPL--2.0-green)
+![Version](https://img.shields.io/badge/version-1.0.44-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![License](https://img.shields.io/badge/license-GPL--2.0-green)
 
 **Editor Plus** (`salvocortesiano/editorplus`) enhances phpBB's posting toolbar: category menus, image dropdowns, smileys, icons, emojis, color picker with gradients, live preview, format-as-you-type, visual editor, server-saved drafts, syntax highlighting, mathematical and chemical formulas, scientific calculator, and a dedicated **Check-up** tab that automatically verifies proper functionality.
 

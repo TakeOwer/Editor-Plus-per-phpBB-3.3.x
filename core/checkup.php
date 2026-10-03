@@ -34,6 +34,10 @@ class checkup
 		'1.0.28'	=> 'editorplus_math',
 		'1.0.29'	=> 'editorplus_katex_version',
 		'1.0.31'	=> 'editorplus_color',
+		'1.0.36'	=> 'editorplus_print',
+		'1.0.37'	=> 'editorplus_cleanup',
+		'1.0.38'	=> 'editorplus_images',
+		'1.0.39'	=> 'editorplus_img_need_post',
 	];
 
 	/** File senza i quali una parte dell'estensione non funziona */
@@ -48,6 +52,10 @@ class checkup
 		'styles/all/template/js/syntax/beautifier.min.js',
 		'styles/all/template/js/editorplus_math.js',
 		'styles/all/template/js/editorplus_calc.js',
+		'styles/all/template/js/editorplus_mod_math.js',
+		'styles/all/template/js/editorplus_mod_color.js',
+		'styles/all/template/js/editorplus_mod_print.js',
+		'styles/all/template/js/editorplus_mod_paste.js',
 		'styles/all/template/js/math/katex.min.js',
 		'styles/all/template/js/math/mhchem.min.js',
 		'styles/all/theme/math/katex.min.css',
@@ -63,6 +71,18 @@ class checkup
 		'adm/style/editorplus_acp.html',
 		'adm/style/editorplus_combos.html',
 		'adm/style/editorplus_check.html',
+		'adm/style/editorplus_check.js',
+		'cron/task/cleanup.php',
+		'core/print_filter.php',
+		'core/images.php',
+		'core/image_exception.php',
+		'controller/image_controller.php',
+		'controller/acp_images_controller.php',
+		'adm/style/editorplus_images.html',
+		'styles/all/template/ucp_editorplus_images.html',
+		'styles/all/template/js/editorplus_gallery.js',
+		'styles/all/template/js/editorplus_mod_images.js',
+		'styles/all/theme/editorplus_gallery.css',
 	];
 
 	/** @var \phpbb\config\config */
@@ -119,7 +139,7 @@ class checkup
 	{
 		$this->rows = [];
 
-		foreach (['environment', 'files', 'install', 'bbcodes', 'engine', 'math', 'data'] as $step)
+		foreach (['environment', 'files', 'install', 'bbcodes', 'engine', 'math', 'data', 'images'] as $step)
 		{
 			try
 			{
@@ -299,12 +319,12 @@ class checkup
 			$modes[] = $row['module_mode'];
 		}
 		$this->db->sql_freeresult($result);
-		$lack = array_diff(['settings', 'combos', 'check'], $modes);
+		$lack = array_diff(['settings', 'combos', 'images', 'check'], $modes);
 		$this->add($g, 'EDITORPLUS_CHK_MODULES', $lack ? self::WARN : self::OK, implode(', ', $modes), $lack ? 'EDITORPLUS_CHK_REENABLE_HINT' : '');
 
 		$routes = [];
 		$broken = [];
-		foreach (['salvocortesiano_editorplus_render', 'salvocortesiano_editorplus_prefs', 'salvocortesiano_editorplus_draft'] as $route)
+		foreach (['salvocortesiano_editorplus_render', 'salvocortesiano_editorplus_prefs', 'salvocortesiano_editorplus_draft', 'salvocortesiano_editorplus_image_upload'] as $route)
 		{
 			try
 			{
@@ -335,6 +355,32 @@ class checkup
 		$this->add($g, 'EDITORPLUS_CHK_COLOR', self::OK, empty($this->config['editorplus_color'])
 			? $this->lang('EDITORPLUS_CHK_COLOR_OFF')
 			: $this->lang(empty($this->config['editorplus_color_classic']) ? 'EDITORPLUS_CHK_COLOR_ON' : 'EDITORPLUS_CHK_COLOR_ON_CLASSIC'));
+
+		// stampa: gruppi che possono stampare i contenuti nascosti (ancora esistenti?)
+		if (!empty($this->config['editorplus_print']))
+		{
+			$pg = helper::parse_group_ids($this->config['editorplus_print_groups']);
+			$found = [];
+			if ($pg)
+			{
+				$result = $this->db->sql_query('SELECT group_id FROM ' . GROUPS_TABLE . ' WHERE ' . $this->db->sql_in_set('group_id', $pg));
+				while ($row = $this->db->sql_fetchrow($result))
+				{
+					$found[] = (int) $row['group_id'];
+				}
+				$this->db->sql_freeresult($result);
+			}
+			$gone = array_diff($pg, $found);
+			$this->add($g, 'EDITORPLUS_CHK_PRINT', $gone ? self::WARN : self::OK,
+				$this->lang('EDITORPLUS_CHK_PRINT_DETAIL', $pg ? implode(',', $pg) : '-',
+					implode(', ', print_filter::tags($this->config['editorplus_print_hidden_tags'])) ?: '-',
+					implode(', ', print_filter::tags($this->config['editorplus_print_spoiler_tags'])) ?: '-'),
+				$gone ? 'EDITORPLUS_CHK_PRINT_HINT' : '');
+		}
+		else
+		{
+			$this->add($g, 'EDITORPLUS_CHK_PRINT', self::OK, $this->lang('EDITORPLUS_CHK_OFF'));
+		}
 
 		$font = in_array('font', $existing, true);
 		$this->add($g, 'EDITORPLUS_CHK_FONT', $font ? self::OK : self::WARN, $font ? '[font]' : $this->lang('EDITORPLUS_CHK_NOT_FOUND'), $font ? '' : 'EDITORPLUS_CHK_FONT_HINT');
@@ -529,6 +575,90 @@ class checkup
 			$this->db->sql_freeresult($result);
 			$this->add($g, 'EDITORPLUS_CHK_DRAFTS', self::OK, $this->lang('EDITORPLUS_CHK_DRAFTS_COUNT', (int) $row['total'], (int) $row['users']));
 		}
+	}
+
+	/* ---------------------------------------------------------------- */
+
+	/**
+	 * 1.0.38: immagini degli utenti
+	 */
+	protected function check_images()
+	{
+		$g = 'EDITORPLUS_CHK_GROUP_IMAGES';
+		/** @var images $images */
+		$images = $this->container->get('salvocortesiano.editorplus.images');
+
+		$on = $images->enabled();
+		$this->add($g, 'EDITORPLUS_CHK_IMG_ON', $on ? self::OK : self::WARN,
+			$on ? $this->lang('EDITORPLUS_CHK_IMG_ON_YES', $this->lang($images->link_mode() === 'route' ? 'EDITORPLUS_IMG_LINK_ROUTE' : 'EDITORPLUS_IMG_LINK_DIRECT')) : $this->lang('EDITORPLUS_CHK_IMG_ON_NO'));
+
+		$tables = [$this->table_prefix . 'editorplus_images', $this->table_prefix . 'editorplus_img_folders'];
+		$missing = array_filter($tables, function ($t) {
+			return !$this->db_tools->sql_table_exists($t);
+		});
+		$this->add($g, 'EDITORPLUS_CHK_IMG_TABLES', $missing ? self::FAIL : self::OK, implode(', ', $missing ?: $tables), $missing ? 'EDITORPLUS_CHK_REENABLE_HINT' : '');
+		if ($missing)
+		{
+			return;
+		}
+
+		$formats = [];
+		foreach (array_values(images::TYPES) as $type)
+		{
+			$formats[] = strtoupper($type) . ' ' . (images::gd_can($type) ? '✓' : '✗');
+		}
+		$gd_all = images::gd_can('jpg') && images::gd_can('png') && images::gd_can('gif') && images::gd_can('webp');
+		$this->add($g, 'EDITORPLUS_CHK_IMG_GD', images::gd_can('jpg') ? ($gd_all ? self::OK : self::WARN) : self::FAIL, implode(' · ', $formats),
+			$gd_all ? '' : 'EDITORPLUS_CHK_IMG_GD_HINT');
+		$this->add($g, 'EDITORPLUS_CHK_IMG_EXIF', function_exists('exif_read_data') ? self::OK : self::WARN, function_exists('exif_read_data') ? 'exif' : '-',
+			function_exists('exif_read_data') ? '' : 'EDITORPLUS_CHK_IMG_EXIF_HINT');
+
+		$base = trim((string) $this->config['upload_path'], '/') . '/';
+		$writable = is_dir($images->base_dir()) && is_writable($images->base_dir());
+		$this->add($g, $this->lang('EDITORPLUS_CHK_IMG_DIR', $base), $writable ? self::OK : self::FAIL, realpath($images->base_dir()) ?: $images->base_dir(), $writable ? '' : 'EDITORPLUS_CHK_IMG_DIR_HINT');
+
+		$limit = images::php_upload_limit();
+		$this->add($g, 'EDITORPLUS_CHK_IMG_LIMIT', $limit && $limit < 2097152 ? self::WARN : self::OK,
+			$this->lang('EDITORPLUS_CHK_IMG_LIMIT_DETAIL', ini_get('upload_max_filesize'), ini_get('post_max_size'), ini_get('memory_limit')));
+
+		$names = [];
+		$allowed = array_keys(array_filter($images->group_settings(), function ($set) {
+			return $set['mode'] === 'yes';
+		}));
+		if ($allowed)
+		{
+			$result = $this->db->sql_query('SELECT group_id, group_name, group_type FROM ' . GROUPS_TABLE . ' WHERE ' . $this->db->sql_in_set('group_id', $allowed));
+			while ($row = $this->db->sql_fetchrow($result))
+			{
+				$key = 'G_' . strtoupper($row['group_name']);
+				$names[] = ((int) $row['group_type'] === GROUP_SPECIAL && $this->language->is_set($key)) ? $this->lang($key) : $row['group_name'];
+			}
+			$this->db->sql_freeresult($result);
+		}
+		$this->add($g, 'EDITORPLUS_CHK_IMG_GROUPS', $names ? self::OK : self::WARN, $names ? implode(', ', $names) : $this->lang('EDITORPLUS_CHK_IMG_GROUPS_NONE'),
+			$names ? '' : 'EDITORPLUS_CHK_IMG_GROUPS_HINT');
+
+		if ($writable)
+		{
+			$test = $images->self_test();
+			$this->add($g, 'EDITORPLUS_CHK_IMG_SELFTEST', $test['ok'] ? self::OK : self::FAIL,
+				$test['ok'] ? $this->lang('EDITORPLUS_CHK_IMG_SELFTEST_OK', $test['size'], $test['thumb']) : ($this->language->is_set($test['detail']) ? $this->lang($test['detail']) : $test['detail']),
+				$test['ok'] ? '' : 'EDITORPLUS_CHK_IMG_SELFTEST_HINT');
+		}
+
+		$ht = $images->htaccess_status();
+		$this->add($g, 'EDITORPLUS_CHK_IMG_HTACCESS', $ht['bad'] ? self::WARN : self::OK,
+			$ht['bad'] ? $this->lang('EDITORPLUS_CHK_IMG_HTACCESS_BAD', count($ht['bad'])) . ': ' . implode(', ', array_slice($ht['bad'], 0, 5)) : $this->lang('EDITORPLUS_CHK_IMG_HTACCESS_OK', $ht['total']),
+			$ht['bad'] ? 'EDITORPLUS_CHK_IMG_HTACCESS_HINT' : '');
+
+		$scan = $images->scan();
+		$untracked = array_sum(array_map('count', $scan['untracked']));
+		$problems = count($scan['missing_dirs']) + count($scan['orphan_dirs']) + count($scan['unregistered_dirs']) + $untracked + count($scan['missing_files']);
+		$totals = $images->totals();
+		$this->add($g, 'EDITORPLUS_CHK_IMG_SYNC', $problems ? self::WARN : self::OK,
+			$problems ? $this->lang('EDITORPLUS_CHK_IMG_SYNC_BAD', count($scan['missing_dirs']), count($scan['orphan_dirs']), count($scan['unregistered_dirs']), $untracked, count($scan['missing_files']))
+				: $this->lang('EDITORPLUS_CHK_IMG_SYNC_OK', $totals['users'], $totals['images']),
+			$problems ? 'EDITORPLUS_CHK_IMG_SYNC_HINT' : '');
 	}
 
 	/**

@@ -125,7 +125,7 @@ class v100_fa_bbcode extends \phpbb\db\migration\migration
 		if ($bbcode_id)
 		{
 			$sql = 'DELETE FROM ' . $this->table_prefix . 'bbcodes
-				WHERE bbcode_id = ' . $bbcode_id . "
+				WHERE bbcode_id = ' . (int) $bbcode_id . "
 					AND bbcode_match = '" . $this->db->sql_escape(self::MATCH) . "'";
 			$this->db->sql_query($sql);
 		}

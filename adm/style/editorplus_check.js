@@ -154,6 +154,52 @@
 	}
 
 	/* 2) anteprima dal vivo: richiesta vera al server */
+	/* 1.0.38: link alle immagini degli utenti (cartella di prova) */
+	function loadImage(url) {
+		return new Promise(function (resolve) {
+			var im = new Image();
+			var t = setTimeout(function () {
+				resolve(false);
+			}, 15000);
+			im.onload = function () {
+				clearTimeout(t);
+				resolve(im.naturalWidth > 0);
+			};
+			im.onerror = function () {
+				clearTimeout(t);
+				resolve(false);
+			};
+			im.src = url + (url.indexOf('?') === -1 ? '?' : '&') + 't=' + Date.now();
+		});
+	}
+
+	function liveImages() {
+		var P = CFG.imgProbe;
+		if (!P) {
+			setRow('img_direct', 'warn', L.imgNoProbe);
+			setRow('img_php', 'warn', L.imgNoProbe);
+			setRow('img_route', 'warn', L.imgNoProbe);
+			return Promise.resolve();
+		}
+		setRow('img_direct', 'run', '');
+		setRow('img_php', 'run', '');
+		setRow('img_route', 'run', '');
+		return loadImage(P.image).then(function (ok) {
+			setRow('img_direct', ok ? 'ok' : (P.mode === 'direct' ? 'fail' : 'warn'), (ok ? L.imgOk : L.imgFail + ' — ' + L.imgDirectHint) + ' · ' + P.image);
+			return fetch(P.php + '?t=' + Date.now(), {credentials: 'omit', cache: 'no-store'}).then(function (r) {
+				return r.text();
+			}).catch(function () {
+				return '';
+			});
+		}).then(function (body) {
+			var ran = body.indexOf('EP-PHP-42') !== -1;
+			setRow('img_php', ran ? 'fail' : 'ok', ran ? L.imgPhpFail + ' — ' + L.imgPhpHint : L.imgPhpOk);
+			return loadImage(P.route);
+		}).then(function (ok) {
+			setRow('img_route', ok ? 'ok' : (P.mode === 'route' ? 'fail' : 'warn'), (ok ? L.imgOk : L.imgFail) + ' · ' + P.route);
+		});
+	}
+
 	function liveRender() {
 		setRow('render', 'run', '');
 		return post(CFG.render, {hash: CFG.renderHash, text: '[b]Editor Plus[/b] [syntax=php]echo 1;[/syntax]'}).then(function (res) {
@@ -203,6 +249,42 @@
 		});
 	}
 
+
+	/* 1.0.42: conferme con la finestra integrata di phpBB (come le altre conferme dell'ACP), non quella del browser */
+	function esc(t) {
+		return String(t).replace(/[&<>"]/g, function (c) {
+			return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c];
+		});
+	}
+
+	function niceConfirm(message) {
+		return new Promise(function (resolve) {
+			var $ = window.jQuery;
+			var box = document.getElementById('phpbb_confirm');
+			if (!$ || !window.phpbb || typeof window.phpbb.confirm !== 'function' || !box) {
+				resolve(window.confirm(message));
+				return;
+			}
+			var done = false, seen = false, timer = null;
+			var finish = function (ok) {
+				if (!done) {
+					done = true;
+					clearInterval(timer);
+					resolve(!!ok);
+				}
+			};
+			window.phpbb.confirm('<h3>' + esc(L.confirmTitle) + '</h3><p>' + esc(message) + '</p><fieldset class="submit-buttons">' +
+				'<input type="button" name="confirm" value="' + esc(L.yes) + '" class="button2">&nbsp;<input type="button" name="cancel" value="' + esc(L.no) + '" class="button2"></fieldset>', finish);
+			// chiusa senza rispondere (clic fuori o sulla X): vale come "No"
+			timer = setInterval(function () {
+				if ($(box).is(':visible')) {
+					seen = true;
+				} else if (seen && !$(box).is(':animated')) {
+					finish(false);
+				}
+			}, 150);
+		});
+	}
 
 	/* ---------------- KaTeX: prova in un riquadro isolato (versione in uso o preparata) ---------------- */
 	var MATH_SAMPLES = [
@@ -561,19 +643,21 @@
 		b.className = other ? 'button2' : 'button1';
 		b.textContent = L.kPrepare.replace('%s', o.version);
 		b.addEventListener('click', function () {
-			if (other && !window.confirm(L.kConfirmOther.replace('%s', o.version))) {
-				return;
-			}
-			busy(true, '');
-			var op = startProgress(PH_PREPARE);
-			katexPost('prepare', {version: o.version, op: op}).then(function (res) {
-				stopProgress();
-				document.getElementById('ep-katex-staged').textContent = res.version;
-				busy(false, '');
-				return testStaged();
-			}).catch(function (e) {
-				failProgress(e.message);
-				busy(false, '');
+			(other ? niceConfirm(L.kConfirmOther.replace('%s', o.version)) : Promise.resolve(true)).then(function (ok) {
+				if (!ok) {
+					return;
+				}
+				busy(true, '');
+				var op = startProgress(PH_PREPARE);
+				katexPost('prepare', {version: o.version, op: op}).then(function (res) {
+					stopProgress();
+					document.getElementById('ep-katex-staged').textContent = res.version;
+					busy(false, '');
+					return testStaged();
+				}).catch(function (e) {
+					failProgress(e.message);
+					busy(false, '');
+				});
 			});
 		});
 		return b;
@@ -638,20 +722,22 @@
 	});
 
 	kRestore.addEventListener('click', function () {
-		if (!window.confirm(L.kConfirmRestore.replace('%s', kRestore.getAttribute('data-version')))) {
-			return;
-		}
-		busy(true, '');
-		var op = startProgress(PH_SWAP);
-		katexPost('restore', {op: op}).then(function (res) {
-			finishSwap(L.kRestored.replace('%s', res.version));
-			busy(false, '');
-			setTimeout(function () {
-				window.location.href = CFG.action;
-			}, 2200);
-		}).catch(function (e) {
-			failProgress(e.message);
-			busy(false, '');
+		niceConfirm(L.kConfirmRestore.replace('%s', kRestore.getAttribute('data-version'))).then(function (ok) {
+			if (!ok) {
+				return;
+			}
+			busy(true, '');
+			var op = startProgress(PH_SWAP);
+			katexPost('restore', {op: op}).then(function (res) {
+				finishSwap(L.kRestored.replace('%s', res.version));
+				busy(false, '');
+				setTimeout(function () {
+					window.location.href = CFG.action;
+				}, 2200);
+			}).catch(function (e) {
+				failProgress(e.message);
+				busy(false, '');
+			});
 		});
 	});
 
@@ -663,7 +749,7 @@
 	var runBtn = document.getElementById('ep-live-run');
 	runBtn.addEventListener('click', function () {
 		runBtn.disabled = true;
-		liveRender().then(liveDraft).then(liveMath).then(liveCalc).then(liveBar).then(function () {
+		liveRender().then(liveImages).then(liveDraft).then(liveMath).then(liveCalc).then(liveBar).then(function () {
 			runBtn.disabled = false;
 		});
 	});

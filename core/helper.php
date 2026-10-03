@@ -16,7 +16,7 @@ namespace salvocortesiano\editorplus\core;
 class helper
 {
 	/** Versione dei file JavaScript e CSS attesa (deve coincidere con composer.json) */
-	const VERSION = '1.0.34';
+	const VERSION = '1.0.42';
 
 	/** Interruttori delle funzioni (nome config => valore predefinito) */
 	const TOGGLES = [
@@ -50,6 +50,9 @@ class helper
 		'editorplus_calc'			=> 1,
 		'editorplus_color'			=> 1,
 		'editorplus_color_classic'	=> 1,
+		'editorplus_print'			=> 1,
+		'editorplus_cleanup'		=> 1,
+		'editorplus_paste_bbcode'	=> 1,
 	];
 
 	/**
@@ -131,10 +134,6 @@ class helper
 		}
 
 		$lang = [];
-		if (!defined('IN_PHPBB'))
-		{
-			define('IN_PHPBB', true);
-		}
 		include $path;
 
 		return $lang;
@@ -400,6 +399,13 @@ class helper
 	 */
 	public static function bbcode_groups($db)
 	{
+		// la colonna bbcode_group la aggiunge Advanced BBCode Box: senza (mai installata, o dati cancellati)
+		// non esiste, e i BBCode valgono per tutti, come in phpBB
+		if (!self::has_bbcode_group_column($db))
+		{
+			return [];
+		}
+
 		$sql = 'SELECT bbcode_tag, bbcode_group
 			FROM ' . BBCODES_TABLE;
 		$result = $db->sql_query($sql, 3600);
@@ -412,6 +418,50 @@ class helper
 		$db->sql_freeresult($result);
 
 		return $groups;
+	}
+
+	/**
+	 * La tabella dei BBCode ha la colonna bbcode_group (di Advanced BBCode Box)?
+	 * Il risultato resta nella cache del forum (svuotandola, si ricontrolla: per esempio dopo aver
+	 * installato o cancellato ABBC3).
+	 *
+	 * @param \phpbb\db\driver\driver_interface $db
+	 * @return bool
+	 */
+	public static function has_bbcode_group_column($db)
+	{
+		static $known = null;
+		if ($known !== null)
+		{
+			return $known;
+		}
+
+		global $cache, $phpbb_container;
+		$cached = isset($cache) && $cache ? $cache->get('_editorplus_bbcode_group_col') : false;
+		if ($cached === 'yes' || $cached === 'no')
+		{
+			return $known = ($cached === 'yes');
+		}
+
+		$known = false;
+		try
+		{
+			$tools = (isset($phpbb_container) && $phpbb_container && $phpbb_container->has('dbal.tools'))
+				? $phpbb_container->get('dbal.tools')
+				: (new \phpbb\db\tools\factory())->get($db);
+			$known = (bool) $tools->sql_column_exists(BBCODES_TABLE, 'bbcode_group');
+		}
+		catch (\Exception $e)
+		{
+			$known = false;
+		}
+
+		if (isset($cache) && $cache)
+		{
+			$cache->put('_editorplus_bbcode_group_col', $known ? 'yes' : 'no', 3600);
+		}
+
+		return $known;
 	}
 
 	/**

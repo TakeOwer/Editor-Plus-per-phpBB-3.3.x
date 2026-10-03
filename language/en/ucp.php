@@ -45,4 +45,17 @@ $lang = array_merge($lang, [
 	'UCP_EDITORPLUS_SPELLCHECK_EXPLAIN'	=> 'Underlines misspelled words while you type (done by the browser with its dictionaries). With many BBCode tags it can be intrusive.',
 	'UCP_EDITORPLUS_LF_MARKS'	=> 'Mark font size and face',
 	'UCP_EDITORPLUS_LF_MARKS_EXPLAIN'	=> 'With formatting while typing, underlines text inside [size] and [font] with a colour.',
+
+	// 1.0.38: My images
+	'UCP_EDITORPLUS_IMG_EXPLAIN'	=> 'The images you uploaded while writing posts (dropped, pasted or chosen with “My images” in the editor). Click a thumbnail to enlarge it and copy its link or BBCode.',
+	'UCP_EDITORPLUS_IMG_NOTHING'	=> 'You did not select any image.',
+	'UCP_EDITORPLUS_IMG_DELETED'	=> 'Images deleted: %d.',
+	'UCP_EDITORPLUS_IMG_CONFIRM'	=> 'Delete the %d selected images? Posts where you used them will show broken images.',
+	'UCP_EDITORPLUS_IMG_CONFIRM_ALL'	=> 'Delete ALL your images? Posts where you used them will show broken images.',
+	'UCP_EDITORPLUS_IMG_SELECT_ALL'	=> 'Select all',
+	'UCP_EDITORPLUS_IMG_DELETE_SEL'	=> 'Delete selected',
+	'UCP_EDITORPLUS_IMG_DELETE_ALL'	=> 'Delete all',
+	'UCP_EDITORPLUS_IMG_NONE'	=> 'You have not uploaded any images yet.',
+	'UCP_EDITORPLUS_IMG_SPACE'	=> 'Space used',
+	'UCP_EDITORPLUS_IMG_LIMITS'	=> 'Maximum size per image: %s',
 ]);

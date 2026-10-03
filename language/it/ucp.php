@@ -45,4 +45,17 @@ $lang = array_merge($lang, [
 	'UCP_EDITORPLUS_SPELLCHECK_EXPLAIN'	=> 'Sottolinea le parole sbagliate mentre scrivi (lo fa il browser, con i suoi dizionari). Con molti codici BBCode può risultare invadente.',
 	'UCP_EDITORPLUS_LF_MARKS'	=> 'Segna dimensione e carattere',
 	'UCP_EDITORPLUS_LF_MARKS_EXPLAIN'	=> 'Con la formattazione mentre scrivi, sottolinea con un colore il testo dentro [size] e [font].',
+
+	// 1.0.38: Le mie immagini
+	'UCP_EDITORPLUS_IMG_EXPLAIN'	=> 'Le immagini che hai caricato scrivendo i messaggi (trascinate, incollate o scelte con “Le mie immagini” nell’editor). Clic su una miniatura per ingrandirla e copiare link o BBCode.',
+	'UCP_EDITORPLUS_IMG_NOTHING'	=> 'Non hai scelto nessuna immagine.',
+	'UCP_EDITORPLUS_IMG_DELETED'	=> 'Immagini eliminate: %d.',
+	'UCP_EDITORPLUS_IMG_CONFIRM'	=> 'Eliminare le %d immagini scelte? Nei messaggi in cui le hai usate compariranno immagini rotte.',
+	'UCP_EDITORPLUS_IMG_CONFIRM_ALL'	=> 'Eliminare TUTTE le tue immagini? Nei messaggi in cui le hai usate compariranno immagini rotte.',
+	'UCP_EDITORPLUS_IMG_SELECT_ALL'	=> 'Seleziona tutte',
+	'UCP_EDITORPLUS_IMG_DELETE_SEL'	=> 'Elimina selezionate',
+	'UCP_EDITORPLUS_IMG_DELETE_ALL'	=> 'Elimina tutte',
+	'UCP_EDITORPLUS_IMG_NONE'	=> 'Non hai ancora caricato immagini.',
+	'UCP_EDITORPLUS_IMG_SPACE'	=> 'Spazio usato',
+	'UCP_EDITORPLUS_IMG_LIMITS'	=> 'Peso massimo per immagine: %s',
 ]);

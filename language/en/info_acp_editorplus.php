@@ -31,4 +31,11 @@ $lang = array_merge($lang, [
 	'ACP_EDITORPLUS_CHECK'	=> 'Check-up',
 	'LOG_EDITORPLUS_KATEX_UPDATED'	=> '<strong>Editor Plus: KaTeX updated</strong><br>» from %1$s to %2$s',
 	'LOG_EDITORPLUS_KATEX_RESTORED'	=> '<strong>Editor Plus: KaTeX restored</strong><br>» from %1$s to %2$s',
+	'LOG_EDITORPLUS_CLEANUP'	=> '<strong>Editor Plus: data cleanup</strong><br>» %1$d expired drafts and %2$d orphan attachments removed',
+	'ACP_EDITORPLUS_IMAGES'	=> 'User images',
+	'LOG_EDITORPLUS_IMG_SETTINGS'	=> '<strong>Editor Plus: user image settings updated</strong>',
+	'LOG_EDITORPLUS_IMG_DELETED'	=> '<strong>Editor Plus: images deleted</strong><br>» %1$d images of %2$s',
+	'LOG_EDITORPLUS_IMG_FOLDER_DELETED'	=> '<strong>Editor Plus: image folder deleted</strong><br>» %1$s (%2$s, %3$d images)',
+	'LOG_EDITORPLUS_IMG_USERS_DELETED'	=> '<strong>Editor Plus: image folders of deleted users removed</strong><br>» %s',
+	'LOG_EDITORPLUS_IMG_REPAIR'	=> '<strong>Editor Plus: images realigned</strong><br>» %1$d folders removed, %2$d folders and %3$d images registered, %4$d records without file removed',
 ]);

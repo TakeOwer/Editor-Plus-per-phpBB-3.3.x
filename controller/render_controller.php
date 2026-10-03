@@ -23,6 +23,9 @@ class render_controller
 	/** Una richiesta non può chiedere più di questo numero di testi (anteprima combo in blocco) */
 	const MAX_ITEMS = 40;
 
+	/** Stampa: limite di sicurezza sulla lunghezza del testo */
+	const MAX_PRINT = 200000;
+
 	/** @var auth */
 	protected $auth;
 
@@ -190,6 +193,58 @@ class render_controller
 		}
 		$text = str_replace(["\r\n", "\r"], "\n", $text);
 
-		return trim(htmlspecialchars($text, ENT_COMPAT, 'UTF-8'));
+		return trim(utf8_htmlspecialchars($text));
+	}
+
+	/**
+	 * Stampa / PDF: il messaggio disegnato con spoiler aperti e contenuti nascosti solo per i gruppi
+	 * autorizzati in ACP. Il controllo è qui, sul server: il contenuto nascosto non arriva mai nel browser
+	 * di chi non può stamparlo.
+	 *
+	 * POST hash, text_b64
+	 *
+	 * @return JsonResponse
+	 */
+	public function print_view()
+	{
+		if (!check_link_hash($this->request->variable('hash', ''), 'editorplus_render'))
+		{
+			return new JsonResponse(['error' => 'FORM_INVALID'], 403);
+		}
+		if (empty($this->config['editorplus_print']) || $this->user->data['user_id'] == ANONYMOUS)
+		{
+			return new JsonResponse(['error' => 'NOT_AUTHORISED'], 403);
+		}
+
+		$text = $this->from_b64($this->request->raw_variable('text_b64', '', \phpbb\request\request_interface::POST));
+		if (utf8_strlen($text) > self::MAX_PRINT)
+		{
+			return new JsonResponse(['error' => 'TOO_LONG'], 413);
+		}
+
+		$allowed = \salvocortesiano\editorplus\core\helper::parse_group_ids($this->config['editorplus_print_groups']);
+		$mine = $this->db ? \salvocortesiano\editorplus\core\helper::user_groups($this->db, (int) $this->user->data['user_id']) : [];
+		$show_hidden = (bool) array_intersect($allowed, $mine);
+
+		$filter = new \salvocortesiano\editorplus\core\print_filter();
+		$prepared = $filter->prepare(
+			$text,
+			\salvocortesiano\editorplus\core\print_filter::tags($this->config['editorplus_print_hidden_tags']),
+			\salvocortesiano\editorplus\core\print_filter::tags($this->config['editorplus_print_spoiler_tags']),
+			$show_hidden
+		);
+
+		$this->user->add_lang_ext('salvocortesiano/editorplus', 'common');
+		$html = $filter->finish($this->to_html($prepared), [
+			'spoiler'	=> $this->user->lang('EP_PRINT_SPOILER'),
+			'hidden'	=> $this->user->lang('EP_PRINT_HIDDEN'),
+			'removed'	=> $this->user->lang('EP_PRINT_REMOVED'),
+		]);
+
+		return new JsonResponse([
+			'html'			=> $html,
+			'show_hidden'	=> $show_hidden,
+			'removed'		=> $filter->removed(),
+		]);
 	}
 }

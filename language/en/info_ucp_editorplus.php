@@ -19,4 +19,5 @@ if (empty($lang) || !is_array($lang))
 }
 $lang = array_merge($lang, [
 	'UCP_EDITORPLUS_TITLE'	=> 'Editor Plus',
+	'UCP_EDITORPLUS_IMAGES'	=> 'My images',
 ]);

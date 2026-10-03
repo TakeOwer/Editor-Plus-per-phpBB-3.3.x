@@ -507,3 +507,162 @@ select.ep-groups {
 .ep-kprog-head .ep-raw-space {
 	flex: 1;
 }
+
+/* 1.0.37 – impostazioni in schede */
+.ep-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 12px 0 0;
+	border-bottom: 2px solid #c7d3de;
+}
+
+.ep-tabs[hidden] {
+	display: none;
+}
+
+.ep-tab {
+	margin-bottom: -2px;
+	padding: 7px 14px;
+	font: inherit;
+	font-size: 12px;
+	font-weight: bold;
+	color: #536482;
+	cursor: pointer;
+	border: 1px solid transparent;
+	border-bottom: 2px solid transparent;
+	border-radius: 6px 6px 0 0;
+	background: #eef2f6;
+}
+
+.ep-tab:hover,
+.ep-tab:focus {
+	color: #105289;
+	background: #e1e9f1;
+}
+
+.ep-tab.ep-tab-on {
+	color: #105289;
+	border-color: #c7d3de #c7d3de #fff;
+	border-bottom: 2px solid #fff;
+	background: #fff;
+}
+
+.ep-tab-panel[hidden] {
+	display: none;
+}
+
+/* 1.0.38 – immagini degli utenti */
+.ep-img-totals {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 12px 0;
+}
+
+.ep-img-totals > div {
+	flex: 1 1 140px;
+	padding: 10px 14px;
+	background: #f5f8fa;
+	border: 1px solid #d5dee6;
+	border-left: 4px solid #1f7ac4;
+	border-radius: 4px;
+}
+
+.ep-img-totals strong {
+	display: block;
+	font-size: 20px;
+	color: #105289;
+}
+
+.ep-img-totals span {
+	font-size: 11px;
+	color: #536482;
+	text-transform: uppercase;
+}
+
+a.ep-tab {
+	display: inline-block;
+	text-decoration: none;
+}
+
+.ep-img-radio-block {
+	display: block;
+	margin-bottom: 8px;
+}
+
+.ep-img-radio-block code {
+	margin-left: 22px;
+	font-size: 11px;
+	word-break: break-all;
+}
+
+.ep-img-type {
+	display: inline-block;
+	margin-right: 14px;
+}
+
+.ep-img-hint {
+	display: block;
+	margin-top: 6px;
+	font-size: 11px;
+	color: #536482;
+}
+
+.ep-img-scroll {
+	overflow-x: auto;
+}
+
+.ep-img-groups input.inputbox {
+	width: 90px;
+}
+
+.ep-img-grp-yes td:first-child { border-left: 4px solid #3c9a3f; }
+.ep-img-grp-never td:first-child { border-left: 4px solid #c0392b; }
+.ep-img-grp-unset td:first-child { border-left: 4px solid #c7d3de; }
+
+.ep-img-userhead {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: flex-start;
+	justify-content: space-between;
+	margin: 14px 0;
+	padding: 12px 16px;
+	background: #f5f8fa;
+	border: 1px solid #d5dee6;
+	border-radius: 6px;
+}
+
+.ep-img-userhead > div {
+	flex: 1;
+	min-width: 260px;
+}
+
+.ep-img-userhead h2 {
+	margin: 0 0 6px;
+}
+
+.ep-img-userhead p {
+	margin: 4px 0;
+}
+
+.ep-img-gone {
+	display: inline-block;
+	padding: 1px 6px;
+	font-size: 10px;
+	font-weight: bold;
+	color: #fff;
+	vertical-align: middle;
+	background: #7a8791;
+	border-radius: 3px;
+}
+
+.ep-img-selcount {
+	font-weight: bold;
+	color: #105289;
+}
+
+.ep-img-search .inputbox {
+	min-width: 220px;
+}

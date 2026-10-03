@@ -21,8 +21,20 @@ class main_module
 		global $phpbb_container;
 
 		/** @var \salvocortesiano\editorplus\controller\acp_controller $controller */
-		$controller = $phpbb_container->get('salvocortesiano.editorplus.acp_controller');
 		$language = $phpbb_container->get('language');
+
+		if ($mode === 'images')
+		{
+			/** @var \salvocortesiano\editorplus\controller\acp_images_controller $images */
+			$images = $phpbb_container->get('salvocortesiano.editorplus.acp_images_controller');
+			$images->set_page_url($this->u_action);
+			$this->tpl_name = 'editorplus_images';
+			$this->page_title = $language->lang('ACP_EDITORPLUS_IMAGES');
+			$images->display();
+			return;
+		}
+
+		$controller = $phpbb_container->get('salvocortesiano.editorplus.acp_controller');
 
 		$controller->set_page_url($this->u_action);
 

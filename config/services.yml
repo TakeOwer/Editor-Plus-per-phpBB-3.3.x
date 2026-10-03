@@ -70,8 +70,56 @@ services:
             - '%core.root_path%'
             - '%core.table_prefix%'
 
+    salvocortesiano.editorplus.images:
+        class: salvocortesiano\editorplus\core\images
+        arguments:
+            - '@config'
+            - '@config_text'
+            - '@dbal.conn'
+            - '@controller.helper'
+            - '%core.root_path%'
+            - '%core.table_prefix%'
+
+    salvocortesiano.editorplus.image_controller:
+        class: salvocortesiano\editorplus\controller\image_controller
+        arguments:
+            - '@config'
+            - '@language'
+            - '@request'
+            - '@user'
+            - '@salvocortesiano.editorplus.images'
+
+    salvocortesiano.editorplus.acp_images_controller:
+        class: salvocortesiano\editorplus\controller\acp_images_controller
+        arguments:
+            - '@config'
+            - '@dbal.conn'
+            - '@ext.manager'
+            - '@language'
+            - '@log'
+            - '@pagination'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@salvocortesiano.editorplus.images'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+
     salvocortesiano.editorplus.katex_updater:
         class: salvocortesiano\editorplus\core\katex_updater
         arguments:
             - '@config'
             - '%core.root_path%'
+
+    salvocortesiano.editorplus.cron.task.cleanup:
+        class: salvocortesiano\editorplus\cron\task\cleanup
+        arguments:
+            - '@config'
+            - '@dbal.conn'
+            - '@attachment.manager'
+            - '@log'
+            - '%core.table_prefix%'
+        calls:
+            - [set_name, [cron.task.salvocortesiano.editorplus.cleanup]]
+        tags:
+            - { name: cron.task }

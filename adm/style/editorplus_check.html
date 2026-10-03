@@ -72,6 +72,21 @@
 				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
 				<td class="ep-check-detail">{{ S_CALC_ON ? lang('EDITORPLUS_CHK_LIVE_CALC_EXPLAIN') : lang('EDITORPLUS_CHK_OFF') }}</td>
 			</tr>
+			<tr class="ep-check-row" data-live="img_direct">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_IMG_LIVE_DIRECT') }}</strong></td>
+				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
+				<td class="ep-check-detail">{{ IMG_PROBE_OK ? lang('EDITORPLUS_IMG_LIVE_EXPLAIN') : lang('EDITORPLUS_IMG_LIVE_NO_PROBE') }}</td>
+			</tr>
+			<tr class="ep-check-row" data-live="img_php">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_IMG_LIVE_PHP') }}</strong></td>
+				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
+				<td class="ep-check-detail">–</td>
+			</tr>
+			<tr class="ep-check-row" data-live="img_route">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_IMG_LIVE_ROUTE') }}</strong></td>
+				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
+				<td class="ep-check-detail">–</td>
+			</tr>
 			<tr class="ep-check-row" data-live="draft">
 				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_CHK_LIVE_DRAFT') }}</strong></td>
 				<td class="ep-check-status"><span class="ep-st ep-st-idle">–</span></td>
@@ -86,6 +101,44 @@
 		<span id="ep-copy-done" class="ep-check-hint" hidden>{{ lang('EDITORPLUS_CHK_COPIED') }}</span>
 	</p>
 	<iframe id="ep-live-frame" title="{{ lang('EDITORPLUS_CHK_LIVE_BAR') }}" tabindex="-1" aria-hidden="true"></iframe>
+</fieldset>
+
+<fieldset class="ep-check-group" id="ep-cleanup">
+	<legend>{{ lang('EDITORPLUS_CLEANUP_LEGEND') }}</legend>
+	{% if S_CLEANUP_DONE %}<div class="successbox"><p>{{ CLEANUP_DONE }}</p></div>{% endif %}
+	<p>{{ lang('EDITORPLUS_CLEANUP_PAGE_EXPLAIN') }}</p>
+	<table class="table1 ep-check-table">
+		<tbody>
+			<tr class="ep-check-row {{ S_CLEANUP_ON ? 'ep-check-ok' : 'ep-check-warn' }}" data-status="{{ S_CLEANUP_ON ? 'ok' : 'warn' }}">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_CLEANUP') }}</strong></td>
+				<td class="ep-check-detail" id="ep-cleanup-state">{{ S_CLEANUP_ON ? lang('EDITORPLUS_CHK_ON') : lang('EDITORPLUS_CHK_OFF') }} · {{ lang('EDITORPLUS_CLEANUP_LAST') }} {{ CLEANUP_LAST }}</td>
+			</tr>
+			<tr class="ep-check-row">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_CLEANUP_DRAFTS') }}</strong></td>
+				<td class="ep-check-detail" id="ep-cleanup-drafts">{{ CLEANUP_DRAFTS }}</td>
+			</tr>
+			<tr class="ep-check-row">
+				<td class="ep-check-label"><strong>{{ lang('EDITORPLUS_CLEANUP_ORPHANS') }}</strong></td>
+				<td class="ep-check-detail" id="ep-cleanup-orphans">{{ lang('EDITORPLUS_CLEANUP_ORPHANS_DETAIL', CLEANUP_ORPHANS, CLEANUP_ORPHANS_SIZE) }}
+					<br><span class="ep-check-hint">{% if CLEANUP_ORPHAN_DAYS > 0 %}{{ lang('EDITORPLUS_CLEANUP_ORPHANS_ON', CLEANUP_ORPHAN_DAYS, CLEANUP_ORPHANS_OLD) }}{% else %}{{ lang('EDITORPLUS_CLEANUP_ORPHANS_OFF') }}{% endif %}</span></td>
+			</tr>
+		</tbody>
+	</table>
+	<form method="post" action="{{ U_ACTION }}" class="ep-check-actions">
+		<button type="submit" class="button2" name="cleanup_now" value="1" id="ep-cleanup-now"><i class="icon fa-eraser fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_CLEANUP_NOW') }}</button>
+		{{ S_FORM_TOKEN }}
+	</form>
+</fieldset>
+
+<fieldset class="ep-check-group" id="images">
+	<legend>{{ lang('EDITORPLUS_CHK_GROUP_IMAGES') }}</legend>
+	{% if IMG_REPAIR_DONE %}<div class="successbox"><p>{{ IMG_REPAIR_DONE }}</p></div>{% endif %}
+	<p>{{ lang('EDITORPLUS_IMG_REPAIR_EXPLAIN') }}</p>
+	<form method="post" action="{{ U_ACTION }}" class="ep-check-actions">
+		<button type="submit" class="button2" name="img_repair" value="1" id="ep-img-repair"><i class="icon fa-wrench fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_REPAIR') }}</button>
+		<a class="button2" href="{{ U_IMG_PAGE }}"><i class="icon fa-picture-o fa-fw" aria-hidden="true"></i> {{ lang('ACP_EDITORPLUS_IMAGES') }}</a>
+		{{ S_FORM_TOKEN }}
+	</form>
 </fieldset>
 
 <fieldset class="ep-check-group" id="ep-katex">
@@ -171,6 +224,9 @@ window.EditorPlusCheck = {
 		kDiscarded: '{{ lang('EDITORPLUS_KATEX_DISCARDED')|e('js') }}',
 		kConfirmRestore: '{{ lang('EDITORPLUS_KATEX_CONFIRM_RESTORE')|e('js') }}',
 		kConfirmOther: '{{ lang('EDITORPLUS_KATEX_CONFIRM_OTHER')|e('js') }}',
+		confirmTitle: '{{ lang('EDITORPLUS_CONFIRM_TITLE')|e('js') }}',
+		yes: '{{ lang('YES')|e('js') }}',
+		no: '{{ lang('NO')|e('js') }}',
 		kStep: '{{ lang('EDITORPLUS_KATEX_STEP')|e('js') }}',
 		kFiles: '{{ lang('EDITORPLUS_KATEX_FILES')|e('js') }}',
 		kBytes: '{{ lang('EDITORPLUS_KATEX_BYTES')|e('js') }}',
@@ -178,6 +234,13 @@ window.EditorPlusCheck = {
 		kDone: '{{ lang('EDITORPLUS_KATEX_DONE')|e('js') }}',
 		kFailedAt: '{{ lang('EDITORPLUS_KATEX_FAILED_AT')|e('js') }}',
 		decimal: '{{ lang('EP_CALC_DECIMAL')|e('js') }}',
+		imgOk: '{{ lang('EDITORPLUS_IMG_LIVE_OK')|e('js') }}',
+		imgFail: '{{ lang('EDITORPLUS_IMG_LIVE_FAIL')|e('js') }}',
+		imgPhpOk: '{{ lang('EDITORPLUS_IMG_LIVE_PHP_OK')|e('js') }}',
+		imgPhpFail: '{{ lang('EDITORPLUS_IMG_LIVE_PHP_FAIL')|e('js') }}',
+		imgDirectHint: '{{ lang('EDITORPLUS_IMG_LIVE_DIRECT_HINT')|e('js') }}',
+		imgPhpHint: '{{ lang('EDITORPLUS_IMG_LIVE_PHP_HINT')|e('js') }}',
+		imgNoProbe: '{{ lang('EDITORPLUS_IMG_LIVE_NO_PROBE')|e('js') }}',
 		phase: {
 			check: '{{ lang('EDITORPLUS_KATEX_PH_CHECK')|e('js') }}',
 			download: '{{ lang('EDITORPLUS_KATEX_PH_DOWNLOAD')|e('js') }}',
@@ -204,7 +267,8 @@ window.EditorPlusCheck = {
 		katexActive: '{{ U_KATEX_ACTIVE|e('js') }}',
 		katexStaging: '{{ U_KATEX_STAGING|e('js') }}',
 		calcEngine: '{{ U_CALC_ENGINE|e('js') }}'.replace(/&amp;/g, '&'),
-		action: '{{ U_ACTION|e('js') }}'.replace(/&amp;/g, '&')
+		action: '{{ U_ACTION|e('js') }}'.replace(/&amp;/g, '&'),
+		imgProbe: {{ IMG_PROBE_JSON ?: 'null' }}
 	}
 };
 </script>

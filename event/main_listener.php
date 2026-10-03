@@ -86,6 +86,8 @@ class main_listener implements EventSubscriberInterface
 			// Autore dell'argomento, per il pulsante GHide (risposta completa e risposta rapida)
 			'core.posting_modify_template_vars'			=> 'remember_topic_author_posting',
 			'core.viewtopic_assign_template_vars_before'	=> 'remember_topic_author_viewtopic',
+			// 1.0.38: utente cancellato (dall'ACP o da sé) => via anche la sua cartella delle immagini
+			'core.delete_user_after'					=> 'delete_user_images',
 		];
 	}
 
@@ -170,6 +172,84 @@ class main_listener implements EventSubscriberInterface
 				'name'	=> isset($topic_data['topic_first_poster_name']) ? (string) $topic_data['topic_first_poster_name'] : '',
 			];
 		}
+	}
+
+	/**
+	 * Utenti cancellati: le loro cartelle delle immagini vengono eliminate (se l'opzione è accesa)
+	 */
+	public function delete_user_images($event)
+	{
+		// 0 = mai, 1 = sempre, 2 = solo quando vengono cancellati anche i messaggi
+		$mode = (int) $this->config['editorplus_img_delete_with_user'];
+		if (!$mode || ($mode === 2 && (isset($event['mode']) ? $event['mode'] : '') !== 'remove')
+			|| !$this->container || !$this->container->has('salvocortesiano.editorplus.images') || !$this->container->has('dbal.tools'))
+		{
+			return;
+		}
+
+		// In phpBB un errore SQL non è un'eccezione (ferma la pagina): se le tabelle non ci sono ancora
+		// (aggiornamento a metà) non si tocca nulla, così la cancellazione dell'utente si completa
+		$tools = $this->container->get('dbal.tools');
+		$prefix = $this->container->getParameter('core.table_prefix');
+		if (!$tools->sql_table_exists($prefix . 'editorplus_images') || !$tools->sql_table_exists($prefix . 'editorplus_img_folders'))
+		{
+			return;
+		}
+
+		/** @var \salvocortesiano\editorplus\core\images $images */
+		$images = $this->container->get('salvocortesiano.editorplus.images');
+		$done = $images->delete_users((array) $event['user_ids']);
+
+		if ($done && $this->container->has('log'))
+		{
+			$names = [];
+			foreach ($done as $folder => $count)
+			{
+				$names[] = $folder . ' (' . (int) $count . ')';
+			}
+			$this->container->get('log')->add('admin', (int) $this->user->data['user_id'], (string) $this->user->ip, 'LOG_EDITORPLUS_IMG_USERS_DELETED', false, [implode(', ', $names)]);
+		}
+	}
+
+	/**
+	 * Configurazione del caricamento immagini per l'editor (chi non può caricare la vede comunque,
+	 * così l'editor sa che le immagini non vanno negli allegati e lo dice)
+	 *
+	 * @return array
+	 */
+	protected function images_config()
+	{
+		if (empty($this->config['editorplus_images']) || !$this->container || !$this->container->has('salvocortesiano.editorplus.images'))
+		{
+			return ['enabled' => false];
+		}
+
+		try
+		{
+			/** @var \salvocortesiano\editorplus\core\images $images */
+			$images = $this->container->get('salvocortesiano.editorplus.images');
+			$limits = $images->limits($this->user->data);
+		}
+		catch (\Exception $e)
+		{
+			return ['enabled' => false];
+		}
+
+		return [
+			'enabled'	=> true,
+			'allowed'	=> $limits['allowed'],
+			'reason'	=> $limits['allowed'] ? '' : $this->language->lang($limits['reason'] ?: 'EP_IMG_ERR_NO_GROUP'),
+			'maxSize'	=> $limits['max_size'],
+			'maxW'		=> (int) $this->config['editorplus_img_max_w'],
+			'maxH'		=> (int) $this->config['editorplus_img_max_h'],
+			'types'		=> $images->allowed_types(),
+			'canDelete'	=> !empty($this->config['editorplus_img_user_delete']),
+			'uploadUrl'	=> $this->helper->route('salvocortesiano_editorplus_image_upload'),
+			'listUrl'	=> $this->helper->route('salvocortesiano_editorplus_image_list'),
+			'deleteUrl'	=> $this->helper->route('salvocortesiano_editorplus_image_delete'),
+			'hash'		=> generate_link_hash('editorplus_images'),
+			'ucpUrl'	=> append_sid($this->root_path . 'ucp.php', 'i=-salvocortesiano-editorplus-ucp-main_module&mode=images', false),
+		];
 	}
 
 	/**
@@ -292,6 +372,8 @@ class main_listener implements EventSubscriberInterface
 			'hidden'		=> helper::parse_tags($texts['editorplus_hidden_tags']),
 			'autosaveDays'	=> max(1, (int) $this->config['editorplus_autosave_days']),
 			'maxChars'		=> (int) $this->config['max_post_chars'],
+			// BBCode esistenti sul forum (per convertire il testo incollato solo in BBCode che esistono)
+			'bbcodeTags'	=> array_values(array_map('strtolower', helper::existing_bbcodes($this->db))),
 			'smilies'		=> $toggles['smilies'] ? $this->get_smilies() : [],
 			'smiliesPath'	=> trim((string) $this->config['smilies_path'], '/') . '/',
 			'smiliesQr'		=> (bool) $this->config['allow_smilies'],
@@ -299,6 +381,9 @@ class main_listener implements EventSubscriberInterface
 			'renderHash'	=> generate_link_hash('editorplus_render'),
 			'prefsUrl'		=> $this->helper->route('salvocortesiano_editorplus_prefs'),
 			'draftUrl'		=> $this->helper->route('salvocortesiano_editorplus_draft'),
+			'printUrl'		=> $this->helper->route('salvocortesiano_editorplus_print'),
+			'siteName'		=> (string) $this->config['sitename'],
+			'userName'		=> (string) $this->user->data['username'],
 			'draftHash'		=> generate_link_hash('editorplus_draft'),
 			'coreIcons'		=> $this->core_icons(),
 			// senza ABBC3 la combo dei caratteri compare solo se il BBCode [font] esiste
@@ -319,6 +404,7 @@ class main_listener implements EventSubscriberInterface
 			'assetsVersion'	=> (int) $this->config['assets_version'],
 			'uploadMax'		=> (int) $this->config['max_filesize'],
 			'isGuest'		=> $this->user->data['user_id'] == ANONYMOUS,
+			'images'		=> ($this->user->data['user_id'] != ANONYMOUS) ? $this->images_config() : ['enabled' => false],
 		];
 
 		$this->template->assign_vars([
@@ -333,6 +419,7 @@ class main_listener implements EventSubscriberInterface
 			'S_EDITORPLUS_CALC_JS'	=> !empty($this->config['editorplus_calc']),
 			'S_EDITORPLUS_COMBOS'	=> (bool) $this->config['editorplus_image_combos'],
 			'EDITORPLUS_COMBOS'		=> $bar_combos,
+			'EDITORPLUS_GALLERY_LANG'	=> !empty($js_config['images']['enabled']) ? \salvocortesiano\editorplus\core\images::js_lang($this->language) : '',
 		]);
 	}
 
@@ -501,7 +588,7 @@ class main_listener implements EventSubscriberInterface
 
 		$sql = 'SELECT bbcode_id
 			FROM ' . BBCODES_TABLE . '
-			WHERE bbcode_id = ' . $bbcode_id;
+			WHERE bbcode_id = ' . (int) $bbcode_id;
 		$result = $this->db->sql_query($sql, 3600);
 		$exists = (bool) $this->db->sql_fetchfield('bbcode_id');
 		$this->db->sql_freeresult($result);

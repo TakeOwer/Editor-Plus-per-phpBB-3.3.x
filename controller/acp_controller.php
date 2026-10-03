@@ -136,6 +136,7 @@ class acp_controller
 			'EDITORPLUS_CATEGORY_MAP'		=> $this->config_text->get('editorplus_category_map'),
 			'EDITORPLUS_HIDDEN_TAGS'		=> $this->config_text->get('editorplus_hidden_tags'),
 			'EDITORPLUS_AUTOSAVE_DAYS'		=> (int) $this->config['editorplus_autosave_days'],
+			'EDITORPLUS_ORPHAN_DAYS'		=> (int) $this->config['editorplus_orphan_days'],
 			'S_EDITORPLUS_FA_BBCODE'		=> (bool) $this->config['editorplus_fa_bbcode_id'],
 			'S_EDITORPLUS_SVG_ICONS'		=> $this->config['abbc3_icons_type'] === 'svg',
 			'S_EDITORPLUS_FLASH_ON'			=> (bool) $this->config['allow_post_flash'],
@@ -143,6 +144,11 @@ class acp_controller
 		]));
 
 		$this->display_groups();
+		$this->display_groups('editorplus_print_groups', 'print_groups', 'EDITORPLUS_PRINT');
+		$this->template->assign_vars([
+			'EDITORPLUS_PRINT_HIDDEN_TAGS'	=> implode(', ', \salvocortesiano\editorplus\core\print_filter::tags($this->config['editorplus_print_hidden_tags'])),
+			'EDITORPLUS_PRINT_SPOILER_TAGS'	=> implode(', ', \salvocortesiano\editorplus\core\print_filter::tags($this->config['editorplus_print_spoiler_tags'])),
+		]);
 		$this->assign_badges();
 		$this->display_diagnostics();
 		$this->display_abbc3_notice();
@@ -184,6 +190,10 @@ class acp_controller
 		}
 
 		$this->config->set('editorplus_autosave_days', min(90, max(1, $this->request->variable('editorplus_autosave_days', 7))));
+		if ($this->request->is_set_post('editorplus_orphan_days'))
+		{
+			$this->config->set('editorplus_orphan_days', min(365, max(0, $this->request->variable('editorplus_orphan_days', 0))));
+		}
 
 		// Mappa delle categorie: salvata già normalizzata ("Nome: tag, tag")
 		$map = helper::parse_category_map($this->request->variable('editorplus_category_map', '', true));
@@ -199,6 +209,12 @@ class acp_controller
 		if ($this->request->is_set_post('editorplus_ghide_present'))
 		{
 			$this->save_groups();
+		}
+		if ($this->request->is_set_post('editorplus_print_present'))
+		{
+			$this->save_groups('editorplus_print_groups');
+			$this->config->set('editorplus_print_hidden_tags', implode(',', \salvocortesiano\editorplus\core\print_filter::tags($this->request->variable('editorplus_print_hidden_tags', ''))));
+			$this->config->set('editorplus_print_spoiler_tags', implode(',', \salvocortesiano\editorplus\core\print_filter::tags($this->request->variable('editorplus_print_spoiler_tags', ''))));
 		}
 		if ($this->request->is_set_post('editorplus_syntax_theme'))
 		{
@@ -400,6 +416,36 @@ class acp_controller
 			$this->katex_action($katex);
 		}
 
+		/** @var \salvocortesiano\editorplus\cron\task\cleanup $cleanup */
+		$cleanup = $phpbb_container->get('salvocortesiano.editorplus.cron.task.cleanup');
+		$cleanup_done = null;
+		if ($this->request->is_set_post('cleanup_now'))
+		{
+			if (!check_form_key('editorplus_cleanup'))
+			{
+				trigger_error($this->language->lang('FORM_INVALID') . adm_back_link($this->u_action), E_USER_WARNING);
+			}
+			$cleanup_done = $cleanup->cleanup();
+			$this->config->set('editorplus_cleanup_last', time(), false);
+			$this->log->add('admin', $this->user->data['user_id'], $this->user->ip, 'LOG_EDITORPLUS_CLEANUP', false, [$cleanup_done['drafts'], $cleanup_done['orphans']]);
+		}
+		/** @var \salvocortesiano\editorplus\core\images $images */
+		$images = $phpbb_container->get('salvocortesiano.editorplus.images');
+		$repair_done = '';
+		if ($this->request->is_set_post('img_repair'))
+		{
+			if (!check_form_key('editorplus_cleanup'))
+			{
+				trigger_error($this->language->lang('FORM_INVALID') . adm_back_link($this->u_action), E_USER_WARNING);
+			}
+			$r = $images->repair();
+			$this->log->add('admin', $this->user->data['user_id'], $this->user->ip, 'LOG_EDITORPLUS_IMG_REPAIR', false, [$r['removed_dirs'], $r['folders'], $r['images'], $r['dropped']]);
+			$repair_done = $this->language->lang('EDITORPLUS_IMG_REPAIR_DONE', $r['removed_dirs'], $r['folders'], $r['images'], $r['dropped']);
+		}
+
+		add_form_key('editorplus_cleanup');
+		$stats = $cleanup->stats();
+
 		/** @var \salvocortesiano\editorplus\core\checkup $checkup */
 		$checkup = $phpbb_container->get('salvocortesiano.editorplus.checkup');
 		$rows = $checkup->run();
@@ -460,6 +506,37 @@ class acp_controller
 			'S_MATH_ON'			=> !empty($this->config['editorplus_math']),
 			'S_CALC_ON'			=> !empty($this->config['editorplus_calc']),
 			'S_COLOR_ON'		=> !empty($this->config['editorplus_color']),
+			'S_CLEANUP_DONE'	=> $cleanup_done !== null,
+			'CLEANUP_DONE'		=> $cleanup_done !== null ? $this->language->lang('EDITORPLUS_CLEANUP_DONE', $cleanup_done['drafts'], $cleanup_done['orphans']) : '',
+			'CLEANUP_DRAFTS'	=> $stats['drafts'],
+			'CLEANUP_ORPHANS'	=> $stats['orphans'],
+			'CLEANUP_ORPHANS_SIZE'	=> get_formatted_filesize($stats['orphans_size']),
+			'CLEANUP_ORPHANS_OLD'	=> $stats['orphans_old'],
+			'CLEANUP_ORPHAN_DAYS'	=> (int) $this->config['editorplus_orphan_days'],
+			'CLEANUP_LAST'		=> (int) $this->config['editorplus_cleanup_last'] ? $this->user->format_date((int) $this->config['editorplus_cleanup_last']) : $this->language->lang('EDITORPLUS_CLEANUP_NEVER'),
+			'S_CLEANUP_ON'		=> !empty($this->config['editorplus_cleanup']),
+			'IMG_REPAIR_DONE'	=> $repair_done,
+			'U_IMG_PAGE'		=> str_replace('mode=check', 'mode=images', $this->u_action),
+		]);
+
+		// cartella di prova per la prova dal vivo dei link (immagine vera + file PHP che non deve essere eseguito)
+		$probe = [];
+		try
+		{
+			$probe = $images->prepare_probe();
+		}
+		catch (\Exception $e)
+		{
+			$probe = [];
+		}
+		$this->template->assign_vars([
+			'IMG_PROBE_OK'		=> !empty($probe),
+			'IMG_PROBE_JSON'	=> $probe ? helper::safe_json([
+				'image'	=> $probe['image'],
+				'php'	=> $probe['php'],
+				'route'	=> $images->url($probe['folder'], 'prova.png', false, 'route'),
+				'mode'	=> $images->link_mode(),
+			]) : '',
 		]);
 	}
 
@@ -873,9 +950,9 @@ class acp_controller
 	/**
 	 * Listbox dei gruppi per GHide
 	 */
-	protected function display_groups()
+	protected function display_groups($config_key = 'editorplus_ghide_groups', $block = 'ghide_groups', $prefix = 'EDITORPLUS_GHIDE')
 	{
-		$selected = helper::parse_group_ids($this->config['editorplus_ghide_groups']);
+		$selected = helper::parse_group_ids($this->config[$config_key]);
 
 		$sql = 'SELECT group_id, group_name, group_type
 			FROM ' . GROUPS_TABLE . '
@@ -893,7 +970,7 @@ class acp_controller
 				$names[(int) $row['group_id']] = $name . ' (' . (int) $row['group_id'] . ')';
 			}
 
-			$this->template->assign_block_vars('ghide_groups', [
+			$this->template->assign_block_vars($block, [
 				'ID'			=> (int) $row['group_id'],
 				'NAME'			=> $name,
 				'S_SPECIAL'		=> (int) $row['group_type'] === GROUP_SPECIAL,
@@ -913,17 +990,17 @@ class acp_controller
 		}
 
 		$this->template->assign_vars([
-			'EDITORPLUS_GHIDE_TEXT'	=> implode(', ', $ordered),
-			'EDITORPLUS_GHIDE_CODE'	=> implode(',', $selected),
+			$prefix . '_TEXT'	=> implode(', ', $ordered),
+			$prefix . '_CODE'	=> implode(',', $selected),
 		]);
 	}
 
 	/**
 	 * Salva i gruppi scelti, scartando ID inesistenti
 	 */
-	protected function save_groups()
+	protected function save_groups($config_key = 'editorplus_ghide_groups')
 	{
-		$group_ids = array_values(array_unique(array_filter(array_map('intval', $this->request->variable('editorplus_ghide_groups', [0])))));
+		$group_ids = array_values(array_unique(array_filter(array_map('intval', $this->request->variable($config_key, [0])))));
 
 		if (!empty($group_ids))
 		{
@@ -942,7 +1019,7 @@ class acp_controller
 			$group_ids = array_values(array_intersect($group_ids, $existing));
 		}
 
-		$this->config->set('editorplus_ghide_groups', implode(',', $group_ids));
+		$this->config->set($config_key, implode(',', $group_ids));
 	}
 
 	/**

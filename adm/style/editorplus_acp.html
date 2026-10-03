@@ -39,7 +39,9 @@
 	<div class="ep-notice"><i class="icon fa-lightbulb-o fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_SVG_NOTICE') }}</div>
 {% endif %}
 
-<fieldset class="ep-diag">
+<div class="ep-tabs" id="ep-tabs" role="tablist" hidden></div>
+
+<fieldset class="ep-diag ep-tab-panel" data-ep-tab="diag">
 	<legend>{{ lang('EDITORPLUS_DIAG') }}</legend>
 	<p>{{ lang('EDITORPLUS_DIAG_EXPLAIN') }}</p>
 	<table class="table1 ep-diag-table">
@@ -56,7 +58,7 @@
 </fieldset>
 
 <form id="editorplus_settings" method="post" action="{{ U_ACTION }}">
-	<fieldset>
+	<fieldset class="ep-tab-panel" data-ep-tab="ghide">
 		<legend>{{ lang('EDITORPLUS_LEGEND_GHIDE') }}</legend>
 		<input type="hidden" name="editorplus_ghide_present" value="1">
 		<dl>
@@ -104,7 +106,7 @@
 		</dl>
 	</fieldset>
 
-	<fieldset>
+	<fieldset class="ep-tab-panel" data-ep-tab="content">
 		<legend>{{ lang('EDITORPLUS_LEGEND_SYNTAX') }}</legend>
 		<dl>
 			<dt><label for="editorplus_syntax">{{ lang('EDITORPLUS_SYNTAX') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_SYNTAX_EXPLAIN') }}</span></dt>
@@ -133,7 +135,35 @@
 		</dl>
 	</fieldset>
 
-	<fieldset>
+	<fieldset class="ep-tab-panel" data-ep-tab="print">
+		<legend>{{ lang('EDITORPLUS_LEGEND_PRINT') }}</legend>
+		<input type="hidden" name="editorplus_print_present" value="1">
+		<dl>
+			<dt><label for="editorplus_print">{{ lang('EDITORPLUS_PRINT') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_PRINT_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_print', S_EDITORPLUS_PRINT) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_print_groups">{{ lang('EDITORPLUS_PRINT_GROUPS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_PRINT_GROUPS_EXPLAIN') }}</span></dt>
+			<dd>
+				<select name="editorplus_print_groups[]" id="editorplus_print_groups" multiple="multiple" size="8" class="ep-groups">
+					{% for group in print_groups %}
+						<option value="{{ group.ID }}"{% if group.S_SPECIAL %} class="sep"{% endif %}{% if group.S_SELECTED %} selected="selected"{% endif %}>{{ group.NAME }} ({{ group.ID }})</option>
+					{% endfor %}
+				</select>
+				<p class="ep-preview-line"><strong>{{ lang('EDITORPLUS_GHIDE_SELECTED') ~ lang('COLON') }}</strong> <span id="ep_print_text">{{ EDITORPLUS_PRINT_TEXT ?: lang('EDITORPLUS_PRINT_NONE') }}</span></p>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_print_hidden_tags">{{ lang('EDITORPLUS_PRINT_HIDDEN_TAGS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_PRINT_HIDDEN_TAGS_EXPLAIN') }}</span></dt>
+			<dd><input type="text" class="inputbox" name="editorplus_print_hidden_tags" id="editorplus_print_hidden_tags" value="{{ EDITORPLUS_PRINT_HIDDEN_TAGS }}" maxlength="500"></dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_print_spoiler_tags">{{ lang('EDITORPLUS_PRINT_SPOILER_TAGS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_PRINT_SPOILER_TAGS_EXPLAIN') }}</span></dt>
+			<dd><input type="text" class="inputbox" name="editorplus_print_spoiler_tags" id="editorplus_print_spoiler_tags" value="{{ EDITORPLUS_PRINT_SPOILER_TAGS }}" maxlength="500"></dd>
+		</dl>
+	</fieldset>
+
+	<fieldset class="ep-tab-panel" data-ep-tab="content">
 		<legend>{{ lang('EDITORPLUS_LEGEND_COLOR') }}</legend>
 		<dl>
 			<dt><label for="editorplus_color">{{ lang('EDITORPLUS_COLOR') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_COLOR_EXPLAIN') }}</span></dt>
@@ -145,7 +175,7 @@
 		</dl>
 	</fieldset>
 
-	<fieldset>
+	<fieldset class="ep-tab-panel" data-ep-tab="content">
 		<legend>{{ lang('EDITORPLUS_LEGEND_MATH') }}</legend>
 		<dl>
 			<dt><label for="editorplus_math">{{ lang('EDITORPLUS_MATH') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_MATH_EXPLAIN') }}</span></dt>
@@ -157,7 +187,7 @@
 		</dl>
 	</fieldset>
 
-	<fieldset>
+	<fieldset class="ep-tab-panel" data-ep-tab="bar">
 		<legend>{{ lang('EDITORPLUS_LEGEND_BAR') }}</legend>
 		<dl>
 			<dt><label for="editorplus_font_select">{{ lang('EDITORPLUS_FONT_SELECT') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_FONT_SELECT_EXPLAIN') }}</span></dt>
@@ -195,7 +225,7 @@
 		</dl>
 	</fieldset>
 
-	<fieldset>
+	<fieldset class="ep-tab-panel" data-ep-tab="bar">
 		<legend>{{ lang('EDITORPLUS_LEGEND_INSERT') }}</legend>
 		<dl>
 			<dt><label for="editorplus_fa">{{ lang('EDITORPLUS_FA') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_FA_EXPLAIN') }}</span>
@@ -216,7 +246,7 @@
 		</dl>
 	</fieldset>
 
-	<fieldset>
+	<fieldset class="ep-tab-panel" data-ep-tab="writing">
 		<legend>{{ lang('EDITORPLUS_LEGEND_WRITING') }}</legend>
 		<dl>
 			<dt><label for="editorplus_autosave">{{ lang('EDITORPLUS_AUTOSAVE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_AUTOSAVE_EXPLAIN') }}</span></dt>
@@ -225,6 +255,14 @@
 		<dl>
 			<dt><label for="editorplus_autosave_days">{{ lang('EDITORPLUS_AUTOSAVE_DAYS') ~ lang('COLON') }}</label></dt>
 			<dd><input class="inputbox autowidth" type="number" min="1" max="90" id="editorplus_autosave_days" name="editorplus_autosave_days" value="{{ EDITORPLUS_AUTOSAVE_DAYS }}"> {{ lang('EDITORPLUS_DAYS') }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_cleanup">{{ lang('EDITORPLUS_CLEANUP') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_CLEANUP_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_cleanup', S_EDITORPLUS_CLEANUP) }}</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_orphan_days">{{ lang('EDITORPLUS_ORPHAN_DAYS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_ORPHAN_DAYS_EXPLAIN') }}</span></dt>
+			<dd><input class="inputbox autowidth" type="number" min="0" max="365" id="editorplus_orphan_days" name="editorplus_orphan_days" value="{{ EDITORPLUS_ORPHAN_DAYS }}"> {{ lang('EDITORPLUS_DAYS') }}</dd>
 		</dl>
 		<dl>
 			<dt><label for="editorplus_shortcuts">{{ lang('EDITORPLUS_SHORTCUTS') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_SHORTCUTS_EXPLAIN') }}</span></dt>
@@ -267,6 +305,10 @@
 			<dd>{{ _self.toggle('editorplus_live_format', S_EDITORPLUS_LIVE_FORMAT) }}</dd>
 		</dl>
 		<dl>
+			<dt><label for="editorplus_paste_bbcode">{{ lang('EDITORPLUS_PASTE_BBCODE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_PASTE_BBCODE_EXPLAIN') }}</span></dt>
+			<dd>{{ _self.toggle('editorplus_paste_bbcode', S_EDITORPLUS_PASTE_BBCODE) }}</dd>
+		</dl>
+		<dl>
 			<dt><label for="editorplus_wysiwyg">{{ lang('EDITORPLUS_WYSIWYG') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_WYSIWYG_EXPLAIN') }}</span></dt>
 			<dd>{{ _self.toggle('editorplus_wysiwyg', S_EDITORPLUS_WYSIWYG) }}</dd>
 		</dl>
@@ -296,6 +338,18 @@
 
 <script>
 	(function () {
+		var list = document.getElementById('editorplus_print_groups');
+		var text = document.getElementById('ep_print_text');
+		if (!list || !text) {
+			return;
+		}
+		var none = '{{ lang('EDITORPLUS_PRINT_NONE')|e('js') }}';
+		list.addEventListener('change', function () {
+			var chosen = Array.prototype.filter.call(list.options, function (o) { return o.selected; });
+			text.textContent = chosen.length ? chosen.map(function (o) { return o.textContent.trim(); }).join(', ') : none;
+		});
+	})();
+	(function () {
 		var list = document.getElementById('editorplus_ghide_groups');
 		if (!list) {
 			return;
@@ -315,4 +369,82 @@
 </script>
 
 {% INCLUDEJS '@salvocortesiano_editorplus/editorplus_catedit.js' %}
+
+<script>
+	/* Impostazioni in schede: senza JavaScript tutto resta visibile come prima */
+	(function () {
+		var TABS = [
+			['bar', '{{ lang('EDITORPLUS_TAB_BAR')|e('js') }}', 'fa-bars'],
+			['writing', '{{ lang('EDITORPLUS_TAB_WRITING')|e('js') }}', 'fa-pencil'],
+			['content', '{{ lang('EDITORPLUS_TAB_CONTENT')|e('js') }}', 'fa-code'],
+			['print', '{{ lang('EDITORPLUS_TAB_PRINT')|e('js') }}', 'fa-print'],
+			['ghide', '{{ lang('EDITORPLUS_TAB_GHIDE')|e('js') }}', 'fa-eye-slash'],
+			['diag', '{{ lang('EDITORPLUS_TAB_DIAG')|e('js') }}', 'fa-stethoscope']
+		];
+		var nav = document.getElementById('ep-tabs');
+		var panels = document.querySelectorAll('.ep-tab-panel[data-ep-tab]');
+		if (!nav || !panels.length) {
+			return;
+		}
+		var KEY = 'editorplus:acp-tab';
+		var buttons = {};
+		function show(name) {
+			if (!buttons[name]) {
+				name = TABS[0][0];
+			}
+			Array.prototype.forEach.call(panels, function (p) {
+				p.hidden = p.getAttribute('data-ep-tab') !== name;
+			});
+			Object.keys(buttons).forEach(function (k) {
+				buttons[k].classList.toggle('ep-tab-on', k === name);
+				buttons[k].setAttribute('aria-selected', k === name ? 'true' : 'false');
+			});
+			try {
+				localStorage.setItem(KEY, name);
+			} catch (e) { /* ignora */ }
+		}
+		TABS.forEach(function (t) {
+			if (!document.querySelector('.ep-tab-panel[data-ep-tab="' + t[0] + '"]')) {
+				return;
+			}
+			var b = document.createElement('button');
+			b.type = 'button';
+			b.className = 'ep-tab';
+			b.setAttribute('role', 'tab');
+			b.setAttribute('data-tab', t[0]);
+			b.innerHTML = '<i class="icon ' + t[2] + ' fa-fw" aria-hidden="true"></i> ';
+			b.appendChild(document.createTextNode(t[1]));
+			b.addEventListener('click', function () {
+				show(t[0]);
+			});
+			buttons[t[0]] = b;
+			nav.appendChild(b);
+		});
+		nav.hidden = false;
+		var start = (location.hash || '').replace('#', '');
+		if (!buttons[start]) {
+			try {
+				start = localStorage.getItem(KEY) || '';
+			} catch (e) {
+				start = '';
+			}
+		}
+		show(start);
+		// collegamento interno alla pagina (es. #ghide): apre quella scheda anche senza ricaricare
+		window.addEventListener('hashchange', function () {
+			var h = (location.hash || '').replace('#', '');
+			if (buttons[h]) {
+				show(h);
+			}
+		});
+		// un campo non valido in una scheda nascosta: si apre quella scheda (altrimenti il salvataggio si blocca senza dire perché)
+		document.addEventListener('invalid', function (e) {
+			var panel = e.target.closest ? e.target.closest('.ep-tab-panel[data-ep-tab]') : null;
+			if (panel && panel.hidden) {
+				show(panel.getAttribute('data-ep-tab'));
+			}
+		}, true);
+	})();
+</script>
+
 {% include 'overall_footer.html' %}

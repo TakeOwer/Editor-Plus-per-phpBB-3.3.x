@@ -12,3 +12,39 @@ salvocortesiano_editorplus_draft:
     path: /editorplus/draft
     defaults: { _controller: salvocortesiano.editorplus.draft_controller:handle }
     methods: [POST]
+
+salvocortesiano_editorplus_print:
+    path: /editorplus/print
+    defaults: { _controller: salvocortesiano.editorplus.render_controller:print_view }
+    methods: [POST]
+
+salvocortesiano_editorplus_image_upload:
+    path: /editorplus/images/upload
+    defaults: { _controller: salvocortesiano.editorplus.image_controller:upload }
+    methods: [POST]
+
+salvocortesiano_editorplus_image_list:
+    path: /editorplus/images/list
+    defaults: { _controller: salvocortesiano.editorplus.image_controller:list_own }
+    methods: [POST]
+
+salvocortesiano_editorplus_image_delete:
+    path: /editorplus/images/delete
+    defaults: { _controller: salvocortesiano.editorplus.image_controller:delete_own }
+    methods: [POST]
+
+salvocortesiano_editorplus_image_thumb:
+    path: /editorplus/img/{folder}/thumbs/{file}
+    defaults: { _controller: salvocortesiano.editorplus.image_controller:thumb }
+    methods: [GET, HEAD]
+    requirements:
+        folder: '[a-z0-9][a-z0-9_]{0,60}_[0-9]{1,10}'
+        file: '[a-z0-9][a-z0-9-]{0,80}\.(jpg|png|gif|webp)'
+
+salvocortesiano_editorplus_image_view:
+    path: /editorplus/img/{folder}/{file}
+    defaults: { _controller: salvocortesiano.editorplus.image_controller:view }
+    methods: [GET, HEAD]
+    requirements:
+        folder: '[a-z0-9][a-z0-9_]{0,60}_[0-9]{1,10}'
+        file: '[a-z0-9][a-z0-9-]{0,80}\.(jpg|png|gif|webp)'

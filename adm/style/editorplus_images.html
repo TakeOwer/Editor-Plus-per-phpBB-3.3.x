@@ -1,0 +1,356 @@
+{% include 'overall_header.html' %}
+{% INCLUDECSS '@salvocortesiano_editorplus/editorplus_acp.css' %}
+<link href="{{ IMG_GALLERY_CSS }}" rel="stylesheet" media="screen">
+
+<h1>{{ lang('ACP_EDITORPLUS_IMAGES') }}</h1>
+
+<div class="ep-badges">
+	<span class="ep-badge ep-badge-blue"><span>{{ lang('EDITORPLUS_BADGE_VERSION') }}</span>{{ EDITORPLUS_VERSION }}</span>
+	<span class="ep-badge ep-badge-purple"><span>PHP</span>{{ EDITORPLUS_PHP_VERSION }}</span>
+	<span class="ep-badge ep-badge-teal"><span>phpBB</span>{{ EDITORPLUS_PHPBB_VERSION }}</span>
+	<span class="ep-badge ep-badge-orange"><span>ABBC3</span>{{ EDITORPLUS_ABBC3_VERSION }}</span>
+	<span class="ep-badge ep-badge-green"><span>{{ lang('EDITORPLUS_BADGE_LICENSE') }}</span>GPL-2.0</span>
+</div>
+
+<p>{{ lang('EDITORPLUS_IMG_EXPLAIN', IMG_BASE_DIR) }}</p>
+
+{% if not S_IMG_ENABLED %}
+	<div class="ep-notice"><i class="icon fa-power-off fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_OFF_NOTICE') }}</div>
+{% endif %}
+
+<div class="ep-img-totals">
+	<div><strong>{{ IMG_TOTAL_USERS }}</strong><span>{{ lang('EDITORPLUS_IMG_TOTAL_USERS') }}</span></div>
+	<div><strong>{{ IMG_TOTAL_IMAGES }}</strong><span>{{ lang('EDITORPLUS_IMG_TOTAL_IMAGES') }}</span></div>
+	<div><strong>{{ IMG_TOTAL_SIZE }}</strong><span>{{ lang('EDITORPLUS_IMG_TOTAL_SIZE') }}</span></div>
+</div>
+
+<nav class="ep-tabs ep-tabs-links">
+	<a class="ep-tab{% if not S_IMG_VIEW_SETTINGS %} ep-tab-on{% endif %}" href="{{ U_IMG_OVERVIEW }}"><i class="icon fa-users fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_TAB_USERS') }}</a>
+	<a class="ep-tab{% if S_IMG_VIEW_SETTINGS %} ep-tab-on{% endif %}" href="{{ U_IMG_SETTINGS }}"><i class="icon fa-cogs fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_TAB_SETTINGS') }}</a>
+	<a class="ep-tab" href="{{ U_IMG_CHECK }}#images"><i class="icon fa-stethoscope fa-fw" aria-hidden="true"></i> {{ lang('ACP_EDITORPLUS_CHECK') }}</a>
+</nav>
+
+{% if S_IMG_VIEW_SETTINGS %}
+{# ======================= IMPOSTAZIONI ======================= #}
+<form id="editorplus_img_settings" method="post" action="{{ U_IMG_SETTINGS }}">
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_IMG_LEGEND_GENERAL') }}</legend>
+		{% if not S_IMG_GD %}
+			<div class="errorbox"><p>{{ lang('EDITORPLUS_IMG_NO_GD') }}</p></div>
+		{% endif %}
+		<dl>
+			<dt><label for="editorplus_images">{{ lang('EDITORPLUS_IMG_ENABLE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_ENABLE_EXPLAIN') }}</span></dt>
+			<dd>
+				<label><input type="radio" class="radio" name="editorplus_images" id="editorplus_images" value="1"{% if S_IMG_ENABLED %} checked="checked"{% endif %}> {{ lang('YES') }}</label>
+				<label><input type="radio" class="radio" name="editorplus_images" value="0"{% if not S_IMG_ENABLED %} checked="checked"{% endif %}> {{ lang('NO') }}</label>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_img_link">{{ lang('EDITORPLUS_IMG_LINKMODE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_LINKMODE_EXPLAIN') }}</span></dt>
+			<dd>
+				<label class="ep-img-radio-block"><input type="radio" class="radio" name="editorplus_img_link" id="editorplus_img_link" value="direct"{% if IMG_LINK == 'direct' %} checked="checked"{% endif %}> <strong>{{ lang('EDITORPLUS_IMG_LINK_DIRECT') }}</strong><br><code>{{ IMG_LINK_EXAMPLE_DIRECT }}</code></label>
+				<label class="ep-img-radio-block"><input type="radio" class="radio" name="editorplus_img_link" value="route"{% if IMG_LINK == 'route' %} checked="checked"{% endif %}> <strong>{{ lang('EDITORPLUS_IMG_LINK_ROUTE') }}</strong><br><code>{{ IMG_LINK_EXAMPLE_ROUTE }}</code></label>
+				<span class="ep-img-hint">{{ lang('EDITORPLUS_IMG_LINK_TEST', U_IMG_CHECK ~ '#images') }}</span>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label>{{ lang('EDITORPLUS_IMG_TYPES') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_TYPES_EXPLAIN') }}</span></dt>
+			<dd>
+				{% for t in img_types %}
+					<label class="ep-img-type"><input type="checkbox" name="editorplus_img_types[]" value="{{ t.TYPE }}"{% if t.S_CHECKED %} checked="checked"{% endif %}> {{ t.NAME }}{% if not t.S_SUPPORTED %} <span class="ep-warn" title="{{ lang('EDITORPLUS_IMG_TYPE_NO_GD') }}">⚠</span>{% endif %}</label>
+				{% endfor %}
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_img_max_w">{{ lang('EDITORPLUS_IMG_MAXDIM') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_MAXDIM_EXPLAIN') }}</span></dt>
+			<dd><input type="number" min="0" max="10000" id="editorplus_img_max_w" name="editorplus_img_max_w" value="{{ IMG_MAX_W }}" class="inputbox autowidth"> × <input type="number" min="0" max="10000" name="editorplus_img_max_h" value="{{ IMG_MAX_H }}" class="inputbox autowidth"> px</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_img_quality">{{ lang('EDITORPLUS_IMG_QUALITY') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_QUALITY_EXPLAIN') }}</span></dt>
+			<dd><input type="number" min="40" max="100" id="editorplus_img_quality" name="editorplus_img_quality" value="{{ IMG_QUALITY }}" class="inputbox autowidth"> %</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_img_thumb">{{ lang('EDITORPLUS_IMG_THUMB') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_THUMB_EXPLAIN') }}</span></dt>
+			<dd><input type="number" min="64" max="800" id="editorplus_img_thumb" name="editorplus_img_thumb" value="{{ IMG_THUMB }}" class="inputbox autowidth"> px</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_img_insert">{{ lang('EDITORPLUS_IMG_INSERT') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_INSERT_EXPLAIN') }}</span></dt>
+			<dd>
+				<select id="editorplus_img_insert" name="editorplus_img_insert">
+					<option value="full"{% if IMG_INSERT == 'full' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_INSERT_FULL') }}</option>
+					<option value="thumb"{% if IMG_INSERT == 'thumb' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_INSERT_THUMB') }}</option>
+				</select>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_img_user_delete">{{ lang('EDITORPLUS_IMG_USER_DELETE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_USER_DELETE_EXPLAIN') }}</span></dt>
+			<dd>
+				<label><input type="radio" class="radio" name="editorplus_img_user_delete" id="editorplus_img_user_delete" value="1"{% if S_IMG_USER_DELETE %} checked="checked"{% endif %}> {{ lang('YES') }}</label>
+				<label><input type="radio" class="radio" name="editorplus_img_user_delete" value="0"{% if not S_IMG_USER_DELETE %} checked="checked"{% endif %}> {{ lang('NO') }}</label>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_img_delete_with_user">{{ lang('EDITORPLUS_IMG_WITH_USER') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_WITH_USER_EXPLAIN') }}</span></dt>
+			<dd>
+				<select name="editorplus_img_delete_with_user" id="editorplus_img_delete_with_user">
+					<option value="1"{% if IMG_DELETE_WITH_USER == 1 %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_WITH_USER_ALWAYS') }}</option>
+					<option value="2"{% if IMG_DELETE_WITH_USER == 2 %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_WITH_USER_REMOVE') }}</option>
+					<option value="0"{% if IMG_DELETE_WITH_USER == 0 %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_WITH_USER_NEVER') }}</option>
+				</select>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="editorplus_img_need_post">{{ lang('EDITORPLUS_IMG_NEED_POST') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_NEED_POST_EXPLAIN') }}</span></dt>
+			<dd>
+				<label><input type="radio" class="radio" name="editorplus_img_need_post" id="editorplus_img_need_post" value="1"{% if S_IMG_NEED_POST %} checked="checked"{% endif %}> {{ lang('YES') }}</label>
+				<label><input type="radio" class="radio" name="editorplus_img_need_post" value="0"{% if not S_IMG_NEED_POST %} checked="checked"{% endif %}> {{ lang('NO') }}</label>
+			</dd>
+		</dl>
+	</fieldset>
+
+	<fieldset>
+		<legend>{{ lang('EDITORPLUS_IMG_LEGEND_GROUPS') }}</legend>
+		<p>{{ lang('EDITORPLUS_IMG_GROUPS_EXPLAIN', IMG_PHP_LIMIT) }}</p>
+		<div class="ep-img-scroll">
+		<table class="table1 ep-img-groups">
+			<thead>
+				<tr>
+					<th>{{ lang('EDITORPLUS_IMG_GROUP') }}</th>
+					<th>{{ lang('EDITORPLUS_IMG_GROUP_MODE') }}</th>
+					<th>{{ lang('EDITORPLUS_IMG_GROUP_SIZE') }}</th>
+					<th>{{ lang('EDITORPLUS_IMG_GROUP_COUNT') }}</th>
+					<th>{{ lang('EDITORPLUS_IMG_GROUP_QUOTA') }}</th>
+				</tr>
+			</thead>
+			<tbody>
+			{% for g in img_groups %}
+				<tr class="ep-img-grp ep-img-grp-{{ g.MODE ?: 'unset' }}">
+					<td>{% if g.S_SPECIAL %}<strong>{{ g.NAME }}</strong>{% else %}{{ g.NAME }}{% endif %}</td>
+					<td>
+						<select name="grp_mode[{{ g.ID }}]" class="ep-img-grp-mode" aria-label="{{ g.NAME }}">
+							<option value=""{% if g.MODE == '' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_MODE_UNSET') }}</option>
+							<option value="yes"{% if g.MODE == 'yes' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_MODE_YES') }}</option>
+							<option value="never"{% if g.MODE == 'never' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_MODE_NEVER') }}</option>
+						</select>
+					</td>
+					<td><input type="number" min="0" name="grp_size[{{ g.ID }}]" value="{{ g.SIZE }}" class="inputbox autowidth"> KB</td>
+					<td><input type="number" min="0" name="grp_count[{{ g.ID }}]" value="{{ g.COUNT }}" class="inputbox autowidth"></td>
+					<td><input type="number" min="0" name="grp_quota[{{ g.ID }}]" value="{{ g.QUOTA }}" class="inputbox autowidth"> MB</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+		</div>
+		<p class="ep-img-hint">{{ lang('EDITORPLUS_IMG_GROUPS_ZERO') }}</p>
+	</fieldset>
+
+	<fieldset class="submit-buttons">
+		<input class="button1" type="submit" name="submit" value="{{ lang('SUBMIT') }}">&nbsp;
+		<input class="button2" type="reset" value="{{ lang('RESET') }}">
+		{{ S_FORM_TOKEN }}
+	</fieldset>
+</form>
+<script>
+	(function () {
+		document.querySelectorAll('.ep-img-grp-mode').forEach(function (s) {
+			s.addEventListener('change', function () {
+				var tr = s.closest('tr');
+				tr.className = tr.className.replace(/ep-img-grp-\w+/, 'ep-img-grp-' + (s.value || 'unset'));
+			});
+		});
+	})();
+</script>
+
+{% elseif S_IMG_VIEW_USER %}
+{# ======================= IMMAGINI DI UN UTENTE ======================= #}
+<div class="ep-img-userhead">
+	<div>
+		<h2>
+			{% if U_IMG_USER %}<a href="{{ U_IMG_USER }}"{% if IMG_USER_COLOUR %} style="color:#{{ IMG_USER_COLOUR }}"{% endif %}>{{ IMG_USERNAME }}</a>{% else %}{{ IMG_USERNAME }}{% endif %}
+			{% if S_IMG_USER_GONE %}<span class="ep-img-gone">{{ lang('EDITORPLUS_IMG_USER_GONE') }}</span>{% endif %}
+		</h2>
+		<p>
+			<i class="icon fa-folder-open fa-fw" aria-hidden="true"></i> <code>{{ IMG_FOLDER_PATH }}</code>
+			{% if IMG_FOLDER and not S_IMG_FOLDER_ON_DISK %}<span class="ep-bad"> — {{ lang('EDITORPLUS_IMG_FOLDER_MISSING') }}</span>{% endif %}
+			· {{ lang('EDITORPLUS_IMG_USER_STATS', IMG_COUNT, IMG_BYTES) }}
+		</p>
+		<p class="{{ S_IMG_ALLOWED ? 'ep-ok' : 'ep-warn' }}"><i class="icon {{ S_IMG_ALLOWED ? 'fa-check-circle' : 'fa-ban' }} fa-fw" aria-hidden="true"></i> {{ IMG_PERMISSION }}{% if S_IMG_ALLOWED %} — {{ lang('EDITORPLUS_IMG_USER_LIMITS', IMG_LIMIT_SIZE, IMG_LIMIT_COUNT, IMG_LIMIT_QUOTA) }}{% endif %}</p>
+		{% if IMG_QUOTA_PERCENT %}
+			<div class="epg-quota"><div class="epg-quota-bar"><div class="epg-quota-fill{% if IMG_QUOTA_PERCENT > 85 %} epg-quota-high{% endif %}" style="width:{{ IMG_QUOTA_PERCENT }}%"></div></div></div>
+		{% endif %}
+	</div>
+	<a class="button2 ep-img-back" href="{{ U_IMG_OVERVIEW }}"><i class="icon fa-arrow-left fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_BACK') }}</a>
+</div>
+
+<form id="ep_img_user" method="post" action="{{ U_IMG_USER_ACTION }}">
+	<div class="epg-toolbar">
+		{% if img_items|length %}
+			<label class="epg-btn"><input type="checkbox" data-epg-select-all> {{ lang('EDITORPLUS_IMG_SELECT_ALL') }}</label>
+			<span data-epg-selected class="ep-img-selcount"></span>
+			<button class="epg-btn epg-btn-danger" type="submit" name="ep_img_delete" value="1" data-epg-needs-selection disabled><i class="icon fa-trash fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_DELETE_SEL') }}</button>
+		{% endif %}
+		<span class="epg-spacer"></span>
+		<label>{{ lang('EDITORPLUS_IMG_SORT') ~ lang('COLON') }}
+			<select onchange="location.href='{{ U_IMG_USER_VIEW|replace({'&amp;': '&'})|e('js') }}&sk=' + this.value;">
+				{% for s in img_sorts %}<option value="{{ s.KEY }}"{% if s.S_ON %} selected="selected"{% endif %}>{{ s.NAME }}</option>{% endfor %}
+			</select>
+		</label>
+		{% if IMG_COUNT %}
+			<button class="epg-btn epg-btn-danger" type="submit" name="ep_img_delete_all" value="1"><i class="icon fa-trash-o fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_DELETE_ALL') }}</button>
+		{% endif %}
+		{% if IMG_FOLDER %}
+			<button class="epg-btn epg-btn-danger" type="submit" name="ep_img_delete_folder" value="1"><i class="icon fa-folder fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_DELETE_FOLDER') }}</button>
+		{% endif %}
+	</div>
+
+	{% if img_items|length %}
+		<div class="epg-grid" id="ep-img-grid">
+		{% for it in img_items %}
+			<div class="epg-card">
+				<label class="epg-check" title="{{ lang('EDITORPLUS_IMG_SELECT') }}"><input type="checkbox" name="ids[]" value="{{ it.ID }}" data-epg-select></label>
+				<button type="button" class="epg-thumb" data-epg-open="{{ it.INDEX }}" title="{{ lang('EP_IMG_ZOOM') }}"><img src="{{ it.THUMB }}" alt="{{ it.NAME }}" loading="lazy"></button>
+				<div class="epg-meta">
+					<strong title="{{ it.NAME }}">{{ it.NAME }}</strong>
+					{{ it.DIMENSIONS }} · {{ it.SIZE }}<br>
+					{{ it.DATE }}<br>
+					IP {{ it.IP ?: '-' }}
+				</div>
+			</div>
+		{% endfor %}
+		</div>
+		{% if pagination|length %}
+			<div class="pagination">{% include 'pagination.html' %}</div>
+		{% endif %}
+	{% else %}
+		<div class="epg-empty">{{ lang('EDITORPLUS_IMG_USER_NONE') }}</div>
+	{% endif %}
+	{{ S_FORM_TOKEN }}
+</form>
+
+<script>
+	window.EditorPlusGalleryLang = {{ IMG_JS_LANG }};
+</script>
+<script src="{{ IMG_GALLERY_JS }}"></script>
+<script>
+	(function () {
+		var G = window.EditorPlusGallery;
+		var root = document.getElementById('ep-img-grid');
+		if (!G || !root) {
+			return;
+		}
+		var items = {{ IMG_ITEMS_JSON }};
+		var usageUrl = '{{ U_ACTION|e('js') }}'.replace(/&amp;/g, '&') + '&action=usage&hash={{ IMG_USAGE_HASH }}&id=';
+		var form = document.getElementById('ep_img_user');
+
+		function where(it, extra) {
+			extra.innerHTML = '';
+			extra.appendChild(G.el('p', {text: G.lang('EP_IMG_WHERE_LOADING')}));
+			fetch(usageUrl + it.id, {credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'}}).then(function (r) {
+				return r.json();
+			}).then(function (res) {
+				extra.innerHTML = '';
+				if (!res.ok) {
+					extra.appendChild(G.el('p', {text: res.error || '?'}));
+					return;
+				}
+				if (!res.posts.length && !res.pms && !res.sigs.length) {
+					extra.appendChild(G.el('p', {text: G.lang('EP_IMG_WHERE_NONE')}));
+					return;
+				}
+				if (res.posts.length) {
+					extra.appendChild(G.el('p', {text: G.format(G.lang('EP_IMG_WHERE_POSTS'), res.posts.length)}));
+					extra.appendChild(G.el('ul', {}, res.posts.map(function (p) {
+						return G.el('li', {}, [G.el('a', {href: p.url, target: '_blank', rel: 'noopener', text: p.subject})]);
+					})));
+				}
+				if (res.pms) {
+					extra.appendChild(G.el('p', {text: G.format(G.lang('EP_IMG_WHERE_PMS'), res.pms)}));
+				}
+				if (res.sigs.length) {
+					extra.appendChild(G.el('p', {text: G.lang('EP_IMG_WHERE_SIGS')}));
+					extra.appendChild(G.el('ul', {}, res.sigs.map(function (s) {
+						return G.el('li', {}, [G.el('a', {href: s.url.replace(/&amp;/g, '&'), text: s.name})]);
+					})));
+				}
+			}).catch(function () {
+				extra.innerHTML = '';
+				extra.appendChild(G.el('p', {text: G.lang('EP_IMG_NETWORK_ERROR')}));
+			});
+		}
+
+		G.grid(root, items, {
+			actions: function () {
+				return [
+					{icon: 'fa-search', label: G.lang('EP_IMG_WHERE'), run: function (it, ui) {
+						where(it, ui.extra);
+					}},
+					{icon: 'fa-trash', label: G.lang('EP_IMG_DELETE'), className: 'epg-btn-danger', run: function (it) {
+						// stessa conferma di phpBB delle cancellazioni multiple
+						form.querySelectorAll('input[data-epg-select]').forEach(function (b) {
+							b.checked = String(b.value) === String(it.id);
+						});
+						var btn = form.querySelector('button[name="ep_img_delete"]');
+						btn.disabled = false;
+						btn.click();
+					}}
+				];
+			}
+		});
+	})();
+</script>
+
+{% else %}
+{# ======================= ELENCO UTENTI ======================= #}
+<form method="post" action="{{ U_IMG_OVERVIEW }}" class="epg-toolbar ep-img-search">
+	<input type="search" class="inputbox autowidth" name="q" value="{{ IMG_SEARCH }}" placeholder="{{ lang('EDITORPLUS_IMG_SEARCH') }}" aria-label="{{ lang('EDITORPLUS_IMG_SEARCH') }}">
+	<label>{{ lang('EDITORPLUS_IMG_SORT') ~ lang('COLON') }}
+		<select name="sk">
+			{% for s in img_sorts %}<option value="{{ s.KEY }}"{% if s.S_ON %} selected="selected"{% endif %}>{{ s.NAME }}</option>{% endfor %}
+		</select>
+	</label>
+	<button class="epg-btn" type="submit"><i class="icon fa-search fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_SEARCH_GO') }}</button>
+	{% if IMG_SEARCH %}<a class="epg-btn" href="{{ U_IMG_OVERVIEW }}">{{ lang('EDITORPLUS_IMG_SEARCH_CLEAR') }}</a>{% endif %}
+</form>
+
+{% if S_IMG_HAS_USERS %}
+	<div class="ep-img-scroll">
+	<table class="table1 zebra-table ep-img-users">
+		<thead>
+			<tr>
+				<th>{{ lang('USERNAME') }}</th>
+				<th>{{ lang('EDITORPLUS_IMG_FOLDER') }}</th>
+				<th class="centered-text">{{ lang('EDITORPLUS_IMG_COL_IMAGES') }}</th>
+				<th class="centered-text">{{ lang('EDITORPLUS_IMG_COL_SIZE') }}</th>
+				<th>{{ lang('EDITORPLUS_IMG_COL_LAST') }}</th>
+				<th class="actions">{{ lang('ACTION') }}</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for u in img_users %}
+			<tr>
+				<td>
+					{% if u.U_USER %}<a href="{{ u.U_USER }}"{% if u.USER_COLOUR %} style="color:#{{ u.USER_COLOUR }}"{% endif %}><strong>{{ u.USERNAME }}</strong></a>{% else %}<strong>{{ u.USERNAME }}</strong> <span class="ep-img-gone">{{ lang('EDITORPLUS_IMG_USER_GONE') }}</span>{% endif %}
+				</td>
+				<td><code>{{ u.FOLDER }}</code><br><small>{{ lang('EDITORPLUS_IMG_CREATED', u.CREATED) }}</small></td>
+				<td class="centered-text">{{ u.IMAGES }}</td>
+				<td class="centered-text">{{ u.SIZE }}</td>
+				<td>{{ u.LAST }}</td>
+				<td class="actions">
+					<a class="epg-btn epg-btn-small" href="{{ u.U_VIEW }}"><i class="icon fa-th fa-fw" aria-hidden="true"></i> {{ lang('EDITORPLUS_IMG_OPEN_USER') }}</a>
+				</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+	</div>
+	{% if pagination|length %}
+		<div class="pagination">{{ lang('EDITORPLUS_IMG_LIST_TOTAL', IMG_LIST_TOTAL) }} {% include 'pagination.html' %}</div>
+	{% endif %}
+{% else %}
+	<div class="epg-empty">{{ IMG_SEARCH ? lang('EDITORPLUS_IMG_NO_MATCH') : lang('EDITORPLUS_IMG_NO_USERS') }}</div>
+{% endif %}
+{% endif %}
+
+<p class="ep-credits">Editor Plus {{ EDITORPLUS_VERSION }} · {{ lang('EDITORPLUS_DEVELOPED_BY') }} <a href="https://netshadows.de/ombra" target="_blank" rel="noopener">Salvo Cortesiano</a> · Le Ombre della Rete 360°</p>
+
+{% include 'overall_footer.html' %}

@@ -28,6 +28,12 @@ class main_info
 					'auth'	=> 'ext_salvocortesiano/editorplus && acl_a_board',
 					'cat'	=> ['ACP_EDITORPLUS_TITLE'],
 				],
+				'images'	=> [
+					'title'	=> 'ACP_EDITORPLUS_IMAGES',
+					'auth'	=> 'ext_salvocortesiano/editorplus && acl_a_board',
+					'cat'	=> ['ACP_EDITORPLUS_TITLE'],
+					'before'	=> 'ACP_EDITORPLUS_CHECK',
+				],
 				'check'		=> [
 					'title'	=> 'ACP_EDITORPLUS_CHECK',
 					'auth'	=> 'ext_salvocortesiano/editorplus && acl_a_board',

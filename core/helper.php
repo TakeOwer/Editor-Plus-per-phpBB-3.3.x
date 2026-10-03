@@ -16,7 +16,7 @@ namespace salvocortesiano\editorplus\core;
 class helper
 {
 	/** Versione dei file JavaScript e CSS attesa (deve coincidere con composer.json) */
-	const VERSION = '1.0.42';
+	const VERSION = '1.0.44';
 
 	/** Interruttori delle funzioni (nome config => valore predefinito) */
 	const TOGGLES = [

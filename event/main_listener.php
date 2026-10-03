@@ -235,6 +235,15 @@ class main_listener implements EventSubscriberInterface
 			return ['enabled' => false];
 		}
 
+		$upload = $this->route_or_null('salvocortesiano_editorplus_image_upload');
+		$list = $this->route_or_null('salvocortesiano_editorplus_image_list');
+		$delete = $this->route_or_null('salvocortesiano_editorplus_image_delete');
+		if ($upload === null || $list === null || $delete === null)
+		{
+			// rotte non disponibili: le immagini trascinate tornano allegati di phpBB
+			return ['enabled' => false];
+		}
+
 		return [
 			'enabled'	=> true,
 			'allowed'	=> $limits['allowed'],
@@ -244,12 +253,31 @@ class main_listener implements EventSubscriberInterface
 			'maxH'		=> (int) $this->config['editorplus_img_max_h'],
 			'types'		=> $images->allowed_types(),
 			'canDelete'	=> !empty($this->config['editorplus_img_user_delete']),
-			'uploadUrl'	=> $this->helper->route('salvocortesiano_editorplus_image_upload'),
-			'listUrl'	=> $this->helper->route('salvocortesiano_editorplus_image_list'),
-			'deleteUrl'	=> $this->helper->route('salvocortesiano_editorplus_image_delete'),
+			'uploadUrl'	=> $upload,
+			'listUrl'	=> $list,
+			'deleteUrl'	=> $delete,
 			'hash'		=> generate_link_hash('editorplus_images'),
 			'ucpUrl'	=> append_sid($this->root_path . 'ucp.php', 'i=-salvocortesiano-editorplus-ucp-main_module&mode=images', false),
 		];
+	}
+
+	/**
+	 * Indirizzo di una rotta di Editor Plus, o null se phpBB non la conosce (la generazione lancerebbe
+	 * un'eccezione e farebbe cadere la pagina intera)
+	 *
+	 * @param string $name
+	 * @return string|null
+	 */
+	protected function route_or_null($name)
+	{
+		try
+		{
+			return $this->helper->route($name);
+		}
+		catch (\Exception $e)
+		{
+			return null;
+		}
 	}
 
 	/**
@@ -300,7 +328,27 @@ class main_listener implements EventSubscriberInterface
 	 */
 	public function assign_template_vars()
 	{
+		// formule e codice colorato nei messaggi: per tutti (anche i motori di ricerca)
 		$this->assign_user_vars();
+
+		// I bot non scrivono: per loro niente editor (e niente letture e calcoli inutili su ogni pagina)
+		if (!empty($this->user->data['is_bot']))
+		{
+			return;
+		}
+
+		// Indirizzi dei servizi dell'editor. Se phpBB non conosce le rotte (cache delle rotte non ancora
+		// rigenerata, per esempio durante un aggiornamento dell'estensione), la pagina NON deve cadere:
+		// Editor Plus semplicemente non si attiva in questa pagina e resta l'editor di phpBB.
+		$urls = [];
+		foreach (['render', 'prefs', 'draft', 'print'] as $name)
+		{
+			$urls[$name] = $this->route_or_null('salvocortesiano_editorplus_' . $name);
+			if ($urls[$name] === null)
+			{
+				return;
+			}
+		}
 
 		// Nessun filtro sul nome della pagina: l'editor può comparire in pagine diverse
 		// (scrittura, risposta rapida, MP, firma, pagine di altre estensioni o URL riscritti).
@@ -377,11 +425,11 @@ class main_listener implements EventSubscriberInterface
 			'smilies'		=> $toggles['smilies'] ? $this->get_smilies() : [],
 			'smiliesPath'	=> trim((string) $this->config['smilies_path'], '/') . '/',
 			'smiliesQr'		=> (bool) $this->config['allow_smilies'],
-			'renderUrl'		=> $this->helper->route('salvocortesiano_editorplus_render'),
+			'renderUrl'		=> $urls['render'],
 			'renderHash'	=> generate_link_hash('editorplus_render'),
-			'prefsUrl'		=> $this->helper->route('salvocortesiano_editorplus_prefs'),
-			'draftUrl'		=> $this->helper->route('salvocortesiano_editorplus_draft'),
-			'printUrl'		=> $this->helper->route('salvocortesiano_editorplus_print'),
+			'prefsUrl'		=> $urls['prefs'],
+			'draftUrl'		=> $urls['draft'],
+			'printUrl'		=> $urls['print'],
 			'siteName'		=> (string) $this->config['sitename'],
 			'userName'		=> (string) $this->user->data['username'],
 			'draftHash'		=> generate_link_hash('editorplus_draft'),

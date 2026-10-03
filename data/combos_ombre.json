@@ -1,0 +1,1091 @@
+{
+ "format": "editorplus-combos",
+ "version": 1,
+ "title": "Le Ombre della Rete 360°",
+ "combos": [
+  {
+   "name": "Immagini Film",
+   "tag": "imgi",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "locandin",
+     "Locandina"
+    ],
+    [
+     "descrizion",
+     "Descrizione"
+    ],
+    [
+     "cast",
+     "Cast"
+    ],
+    [
+     "tram",
+     "Trama"
+    ],
+    [
+     "titolo",
+     "Titolo"
+    ],
+    [
+     "recension",
+     "Recensione"
+    ],
+    [
+     "codific",
+     "Codifica"
+    ],
+    [
+     "screenshot",
+     "Screen Shot"
+    ],
+    [
+     "avinaptic",
+     "Avinaptic"
+    ],
+    [
+     "lingua",
+     "Lingua"
+    ],
+    [
+     "youtubevideo",
+     "Trailer"
+    ],
+    [
+     "storia",
+     "Storia"
+    ],
+    [
+     "streaming",
+     "Streaming"
+    ],
+    [
+     "synopsis",
+     "Synopsis"
+    ],
+    [
+     "download",
+     "Download"
+    ],
+    [
+     "password",
+     "PassWord"
+    ],
+    [
+     "attenzione",
+     "Attenzione"
+    ],
+    [
+     "doppiatori",
+     "Doppiatori"
+    ],
+    [
+     "noteupper",
+     "Note Upper"
+    ],
+    [
+     "consiglioscarico",
+     "Consiglio Scarico"
+    ],
+    [
+     "vietato18",
+     "Vietato 18+"
+    ],
+    [
+     "certificato",
+     "Certificato Qualità;"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Giochi",
+   "tag": "imgame",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "cover",
+     "Cover"
+    ],
+    [
+     "descrizione",
+     "Descrizione"
+    ],
+    [
+     "dettagli",
+     "Dettagli"
+    ],
+    [
+     "gameplay",
+     "Gameplay"
+    ],
+    [
+     "informazioni",
+     "Informazioni"
+    ],
+    [
+     "trama",
+     "Trama"
+    ],
+    [
+     "recensione",
+     "Recensione"
+    ],
+    [
+     "testato",
+     "Testato"
+    ],
+    [
+     "trailer",
+     "Trailer"
+    ],
+    [
+     "download",
+     "Download"
+    ],
+    [
+     "lingua",
+     "Lingua"
+    ],
+    [
+     "noteupper",
+     "Notte Upper"
+    ],
+    [
+     "requisiti",
+     "Requisiti"
+    ],
+    [
+     "screen",
+     "Screens"
+    ],
+    [
+     "consiglioscarico",
+     "Consiglio Scarico"
+    ],
+    [
+     "leombrelogo",
+     "Le Ombre Logo"
+    ],
+    [
+     "certificato",
+     "Certificato Qualità;"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Musica",
+   "tag": "imgsong",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "cover",
+     "Cover"
+    ],
+    [
+     "titolo",
+     "Titolo"
+    ],
+    [
+     "download",
+     "Download"
+    ],
+    [
+     "artista",
+     "Artista"
+    ],
+    [
+     "codifica",
+     "Codifica"
+    ],
+    [
+     "password",
+     "PassWord"
+    ],
+    [
+     "tracklist",
+     "Tracks List"
+    ],
+    [
+     "video",
+     "Anteprima Video"
+    ],
+    [
+     "attenzione",
+     "Attenzione"
+    ],
+    [
+     "consiglioscarico",
+     "Consiglio Scarico"
+    ],
+    [
+     "certificato",
+     "Certificato Qualità;"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Softwares",
+   "tag": "imgsoft",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "poster",
+     "Poster"
+    ],
+    [
+     "download",
+     "Download"
+    ],
+    [
+     "descrizione",
+     "Descrizione"
+    ],
+    [
+     "installazione",
+     "Installazione"
+    ],
+    [
+     "password",
+     "PassWord"
+    ],
+    [
+     "requisiti",
+     "Requisiti"
+    ],
+    [
+     "lingua",
+     "Lingua"
+    ],
+    [
+     "virusfree",
+     "Virus Free"
+    ],
+    [
+     "consiglioscarico",
+     "Consiglio Scarico"
+    ],
+    [
+     "certificato",
+     "Certificato Qualità;"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Documentari",
+   "tag": "imgdocs",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "cover",
+     "Cover"
+    ],
+    [
+     "informazioni",
+     "Informazioni"
+    ],
+    [
+     "lingua",
+     "Lingua"
+    ],
+    [
+     "descrizione",
+     "Descrizione"
+    ],
+    [
+     "dettagli",
+     "Dettagli"
+    ],
+    [
+     "recensione",
+     "Recensione"
+    ],
+    [
+     "autore",
+     "Autore"
+    ],
+    [
+     "codifica",
+     "Codifica"
+    ],
+    [
+     "screens",
+     "Screens-Shot"
+    ],
+    [
+     "avinaptic",
+     "Avinaptic"
+    ],
+    [
+     "download",
+     "Download"
+    ],
+    [
+     "noteupper",
+     "Note Upper"
+    ],
+    [
+     "consiglioscarico",
+     "Consiglio Scarico"
+    ],
+    [
+     "hevc",
+     "HEVC"
+    ],
+    [
+     "certificato",
+     "Certificato Qualità;"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini e-Books",
+   "tag": "imglib",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "copertin",
+     "Copertina"
+    ],
+    [
+     "autor",
+     "Autore"
+    ],
+    [
+     "anteprim",
+     "Anteprima eBook"
+    ],
+    [
+     "biografi",
+     "Biografia"
+    ],
+    [
+     "recension",
+     "Recensione"
+    ],
+    [
+     "informazion",
+     "Informazioni"
+    ],
+    [
+     "attenzion",
+     "Attenzione"
+    ],
+    [
+     "synopsi",
+     "Synopsis"
+    ],
+    [
+     "tramaboo",
+     "Trama eBook"
+    ],
+    [
+     "downloa",
+     "Download"
+    ],
+    [
+     "noteuppe",
+     "Note Upper"
+    ],
+    [
+     "certificato",
+     "Certificato Qualità"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Download",
+   "tag": "imgdown",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "Alldebrid",
+     "Alldebrid"
+    ],
+    [
+     "worldbytez",
+     "Worldbytez"
+    ],
+    [
+     "filestore",
+     "Filestore"
+    ],
+    [
+     "terabyte",
+     "Terabyte"
+    ],
+    [
+     "DropBox",
+     "Drop Box"
+    ],
+    [
+     "eMule",
+     "eMule"
+    ],
+    [
+     "Netload",
+     "Netload"
+    ],
+    [
+     "uTorrent",
+     "uTorrent"
+    ],
+    [
+     "Uploaded",
+     "Uploaded"
+    ],
+    [
+     "Mediafire",
+     "Mediafire"
+    ],
+    [
+     "Putlocker",
+     "Putlocker"
+    ],
+    [
+     "Rapidgator",
+     "Rapidgator"
+    ],
+    [
+     "Mega",
+     "Mega"
+    ],
+    [
+     "Tusfiles",
+     "Tusfiles"
+    ],
+    [
+     "hevc",
+     "HEVC"
+    ],
+    [
+     "thanks",
+     "Thanks"
+    ],
+    [
+     "consiglioscarico",
+     "Consiglio Scarico"
+    ],
+    [
+     "Certificato",
+     "Certificato Qualità;"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Guide",
+   "tag": "imgtrk",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "desc",
+     "Descrizione"
+    ],
+    [
+     "conclusioni",
+     "Conclusioni"
+    ],
+    [
+     "premessa",
+     "Premessa"
+    ],
+    [
+     "start",
+     "Inizio Tricks"
+    ],
+    [
+     "titolo",
+     "Titolo"
+    ],
+    [
+     "video",
+     "Video"
+    ],
+    [
+     "videoguida",
+     "Video Guida"
+    ],
+    [
+     "screens",
+     "Screens"
+    ],
+    [
+     "download",
+     "Download"
+    ],
+    [
+     "password",
+     "PassWord"
+    ],
+    [
+     "noteupper",
+     "Note Upper"
+    ],
+    [
+     "requisiti",
+     "Requisiti"
+    ],
+    [
+     "funzionalita",
+     "Funzionalita"
+    ],
+    [
+     "installazione",
+     "Installazione"
+    ],
+    [
+     "pro",
+     "Pro"
+    ],
+    [
+     "contro",
+     "Contro"
+    ],
+    [
+     "certificato",
+     "Certificato Qualità;"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Classica",
+   "tag": "imgclassica",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "cover",
+     "Cover"
+    ],
+    [
+     "locandina",
+     "Locandina"
+    ],
+    [
+     "poster",
+     "Poster"
+    ],
+    [
+     "titolo",
+     "Titolo"
+    ],
+    [
+     "compositore",
+     "Compositore"
+    ],
+    [
+     "artista",
+     "Artista"
+    ],
+    [
+     "dettagli",
+     "Dettagli"
+    ],
+    [
+     "descrizione",
+     "Descrizione"
+    ],
+    [
+     "informazioni",
+     "Informazioni"
+    ],
+    [
+     "recensione",
+     "Recensione"
+    ],
+    [
+     "trama",
+     "Trama"
+    ],
+    [
+     "storiaclassica",
+     "Storia"
+    ],
+    [
+     "tracklist",
+     "Tracklist"
+    ],
+    [
+     "baritono",
+     "Baritono"
+    ],
+    [
+     "soprano",
+     "Soprano"
+    ],
+    [
+     "tenore",
+     "Tenore"
+    ],
+    [
+     "biografia",
+     "Biografia"
+    ],
+    [
+     "libretto",
+     "Libretto"
+    ],
+    [
+     "lingua",
+     "Lingua"
+    ],
+    [
+     "operetta",
+     "Operetta"
+    ],
+    [
+     "opera",
+     "Opera"
+    ],
+    [
+     "password",
+     "PassWord"
+    ],
+    [
+     "screen",
+     "Screens"
+    ],
+    [
+     "noteupper",
+     "Note Upper"
+    ],
+    [
+     "certificato",
+     "Certificato Qualità"
+    ],
+    [
+     "hevc",
+     "HEVC"
+    ],
+    [
+     "consiglioscarico",
+     "Consiglio Scarico"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Horror",
+   "tag": "imghorror",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "locandina",
+     "Locandina"
+    ],
+    [
+     "trama",
+     "Trama"
+    ],
+    [
+     "storia",
+     "Storia"
+    ],
+    [
+     "recensione",
+     "Recensione"
+    ],
+    [
+     "codifica",
+     "Codifica"
+    ],
+    [
+     "avinaptic",
+     "Avinaptic"
+    ],
+    [
+     "screenshot",
+     "Screenshot"
+    ],
+    [
+     "screen",
+     "Screen"
+    ],
+    [
+     "lingua",
+     "Lingua"
+    ],
+    [
+     "noteupper",
+     "Note Upper"
+    ],
+    [
+     "synopsis",
+     "Synopsis"
+    ],
+    [
+     "download",
+     "Download"
+    ],
+    [
+     "trailer",
+     "Trailer"
+    ],
+    [
+     "streaming",
+     "Streaming"
+    ],
+    [
+     "attenzione",
+     "Attenzione"
+    ],
+    [
+     "password",
+     "PassWord"
+    ],
+    [
+     "ombrelog",
+     "Ombre Logo"
+    ],
+    [
+     "certif",
+     "Certificato"
+    ],
+    [
+     "consiglioscarico",
+     "Consiglio Scarico"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Serie TV",
+   "tag": "imgstv",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "locandina",
+     "Locandina"
+    ],
+    [
+     "copertina",
+     "Copertina"
+    ],
+    [
+     "cast",
+     "Cast"
+    ],
+    [
+     "trama",
+     "Trama"
+    ],
+    [
+     "titolo",
+     "Titolo"
+    ],
+    [
+     "descrizione",
+     "Descrizione"
+    ],
+    [
+     "recensione",
+     "Recensione"
+    ],
+    [
+     "informazioni",
+     "Informazioni"
+    ],
+    [
+     "codifica",
+     "Codifica"
+    ],
+    [
+     "streaming",
+     "Streaming"
+    ],
+    [
+     "synopsis",
+     "Synopsis"
+    ],
+    [
+     "storia",
+     "Storia"
+    ],
+    [
+     "conclusione",
+     "Conclusione"
+    ],
+    [
+     "screenshot",
+     "Screen Shot"
+    ],
+    [
+     "screen",
+     "Screen"
+    ],
+    [
+     "avinaptic",
+     "Avinaptic"
+    ],
+    [
+     "lingua",
+     "Lingua"
+    ],
+    [
+     "anteprima",
+     "Anteprima"
+    ],
+    [
+     "trailer",
+     "Trailer"
+    ],
+    [
+     "download",
+     "Download"
+    ],
+    [
+     "password",
+     "PassWord"
+    ],
+    [
+     "attenzione",
+     "Attenzione"
+    ],
+    [
+     "doppiatori",
+     "Doppiatori"
+    ],
+    [
+     "noteupper",
+     "Note Upper"
+    ],
+    [
+     "consiglioscarico",
+     "Consiglio Scarico"
+    ],
+    [
+     "hevc",
+     "HEVC Advanced"
+    ]
+   ]
+  },
+  {
+   "name": "Immagini Streaming",
+   "tag": "imgstr",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "locandina",
+     "Locandina"
+    ],
+    [
+     "copertina",
+     "Copertina"
+    ],
+    [
+     "cover",
+     "Cover"
+    ],
+    [
+     "descrizione",
+     "Descrizione"
+    ],
+    [
+     "cast",
+     "Cast"
+    ],
+    [
+     "trama",
+     "Trama"
+    ],
+    [
+     "titolo",
+     "Titolo"
+    ],
+    [
+     "dettagli",
+     "Dettagli"
+    ],
+    [
+     "recensione",
+     "Recensione"
+    ],
+    [
+     "informazioni",
+     "Informazioni"
+    ],
+    [
+     "codifica",
+     "Codifica"
+    ],
+    [
+     "synopsis",
+     "Synopsis"
+    ],
+    [
+     "storia",
+     "Storia"
+    ],
+    [
+     "screenshot",
+     "Screen Shot"
+    ],
+    [
+     "screens",
+     "Screens"
+    ],
+    [
+     "avinaptic",
+     "Avinaptic"
+    ],
+    [
+     "lingua",
+     "Lingua"
+    ],
+    [
+     "anteprima",
+     "Anteprima"
+    ],
+    [
+     "trailer",
+     "Trailer"
+    ],
+    [
+     "password",
+     "PassWord"
+    ],
+    [
+     "attenzione",
+     "Attenzione"
+    ],
+    [
+     "doppiatori",
+     "Doppiatori"
+    ],
+    [
+     "noteupper",
+     "Note Upper"
+    ],
+    [
+     "video",
+     "Video"
+    ]
+   ]
+  },
+  {
+   "name": "Pirati dei Caraibi",
+   "tag": "imgcariben",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "locandina",
+     "Locandina"
+    ],
+    [
+     "sheda",
+     "Sheda"
+    ],
+    [
+     "personaggi",
+     "Personaggi"
+    ],
+    [
+     "trama",
+     "Trama"
+    ],
+    [
+     "datitecnici",
+     "Dati Tecnici"
+    ],
+    [
+     "download",
+     "Download"
+    ],
+    [
+     "hevc",
+     "HEVC"
+    ],
+    [
+     "leombrelogo",
+     "Le Ombre Logo"
+    ],
+    [
+     "consiglioscarico",
+     "consiglioscarico"
+    ]
+   ]
+  },
+  {
+   "name": "Gif Animate",
+   "tag": "imganimatedgif",
+   "mode": "content",
+   "enabled": true,
+   "options": [
+    [
+     "salutopollice",
+     "Saluto Pollice Giù"
+    ],
+    [
+     "pollice_su",
+     "Pollice Sù"
+    ],
+    [
+     "strega",
+     "Strega"
+    ],
+    [
+     "sorpreso",
+     "Sorpreso"
+    ],
+    [
+     "surprise",
+     "Surprise"
+    ],
+    [
+     "chewinggum",
+     "Chewing Gum"
+    ],
+    [
+     "walk",
+     "Walk"
+    ],
+    [
+     "sad",
+     "Sad Crying"
+    ],
+    [
+     "legend",
+     "Legend"
+    ],
+    [
+     "goal",
+     "GOAL"
+    ],
+    [
+     "100",
+     "100"
+    ],
+    [
+     "coppa",
+     "Coppa"
+    ],
+    [
+     "lol",
+     "LOL"
+    ],
+    [
+     "messi",
+     "Lionel Messi"
+    ],
+    [
+     "tap",
+     "Tap"
+    ],
+    [
+     "wow",
+     "WOW"
+    ]
+   ]
+  }
+ ]
+}

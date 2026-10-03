@@ -38,4 +38,7 @@ $lang = array_merge($lang, [
 	'LOG_EDITORPLUS_IMG_FOLDER_DELETED'	=> '<strong>Editor Plus: image folder deleted</strong><br>» %1$s (%2$s, %3$d images)',
 	'LOG_EDITORPLUS_IMG_USERS_DELETED'	=> '<strong>Editor Plus: image folders of deleted users removed</strong><br>» %s',
 	'LOG_EDITORPLUS_IMG_REPAIR'	=> '<strong>Editor Plus: images realigned</strong><br>» %1$d folders removed, %2$d folders and %3$d images registered, %4$d records without file removed',
+	// nomi dei moduli del Pannello utente: servono anche nell'ACP (registro amministratori, gestione dei moduli)
+	'UCP_EDITORPLUS_TITLE'	=> 'Editor Plus',
+	'UCP_EDITORPLUS_IMAGES'	=> 'My images',
 ]);

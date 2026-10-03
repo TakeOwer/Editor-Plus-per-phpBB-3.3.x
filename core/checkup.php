@@ -324,7 +324,7 @@ class checkup
 
 		$routes = [];
 		$broken = [];
-		foreach (['salvocortesiano_editorplus_render', 'salvocortesiano_editorplus_prefs', 'salvocortesiano_editorplus_draft', 'salvocortesiano_editorplus_image_upload'] as $route)
+		foreach (['salvocortesiano_editorplus_render', 'salvocortesiano_editorplus_prefs', 'salvocortesiano_editorplus_draft', 'salvocortesiano_editorplus_print', 'salvocortesiano_editorplus_image_upload'] as $route)
 		{
 			try
 			{

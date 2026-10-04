@@ -1,2 +1,4 @@
 {# Barra standard di phpBB (ABBC3 assente o con la sua barra spenta): stessi contenuti di Editor Plus #}
 {% if not S_ABBC3_BBCODES_BAR and EDITORPLUS_JSON %}{% include '@salvocortesiano_editorplus/editorplus_bar_after.html' %}{% endif %}
+{# Editor Plus spento dall'utente: una riga per riattivarlo #}
+{% if S_EDITORPLUS_USER_OFF %}<div class="ep-user-off" style="clear: both; margin: 4px 0 6px; font-size: 0.9em; opacity: 0.8;"><i class="icon fa-pencil-square-o fa-fw" aria-hidden="true"></i> {{ lang('EP_USER_OFF') }} · <a href="{{ U_EDITORPLUS_UCP }}">{{ lang('EP_USER_OFF_LINK') }}</a></div>{% endif %}

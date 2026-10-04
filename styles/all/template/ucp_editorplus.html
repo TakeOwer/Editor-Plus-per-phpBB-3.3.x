@@ -18,6 +18,7 @@
 				<label for="ep_{{ pref.KEY }}_0"><input type="radio" name="ep_{{ pref.KEY }}" id="ep_{{ pref.KEY }}_0" value="0"{% if not pref.S_ON %} checked="checked"{% endif %}> {{ lang('NO') }}</label>
 			</dd>
 		</dl>
+		{% if pref.S_MAIN %}<hr class="dashed">{% endif %}
 		{% endfor %}
 	</fieldset>
 	{% else %}

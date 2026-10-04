@@ -90,6 +90,15 @@ class main_module
 			trigger_error($language->lang('UCP_EDITORPLUS_SAVED') . '<br><br>' . $language->lang('RETURN_UCP', '<a href="' . $this->u_action . '">', '</a>'));
 		}
 
+		// "Usa Editor Plus": sempre per prima, e sempre disponibile
+		$template->assign_block_vars('ep_prefs', [
+			'KEY'		=> 'enabled',
+			'TITLE'		=> $language->lang('UCP_EDITORPLUS_ENABLED'),
+			'EXPLAIN'	=> $language->lang('UCP_EDITORPLUS_ENABLED_EXPLAIN'),
+			'S_ON'		=> (bool) $prefs['enabled'],
+			'S_MAIN'	=> true,
+		]);
+
 		foreach (self::REQUIRES as $key => $switch)
 		{
 			if (empty($config[$switch]))

@@ -89,7 +89,7 @@
 	}
 
 	var cfg = window.EditorPlusConfig || {};
-	var epState = {version: '1.0.44', ready: false, config: !!(cfg && cfg.features), errors: []};
+	var epState = {version: '1.0.47', ready: false, config: !!(cfg && cfg.features), errors: []};
 
 	function report(step, err) {
 		epState.errors.push(step + ': ' + (err && err.message ? err.message : err));
@@ -427,42 +427,66 @@
 	/* ------------------------------------------------------------------ */
 
 	/*
-	 * 1.0.42: conferme con la finestra integrata di phpBB (stesso aspetto dello stile del forum, come le
-	 * conferme di phpBB e delle altre estensioni) invece del riquadro grigio del browser.
+	 * Finestra integrata di phpBB (stesso aspetto dello stile del forum) con uno o più pulsanti.
+	 * 1.0.42: conferme Sì/No; 1.0.45: anche scelte multiple (immagini trascinate o incollate).
+	 * buttons: [{value, label, name?, disabled?, help?}]; name 'confirm' = Invio, 'cancel' = Esc.
 	 * Se la pagina non ha la finestra di phpBB si ripiega sul riquadro del browser.
-	 * @return Promise<boolean>
+	 * @return Promise<*> il valore del pulsante scelto, null se annullata o chiusa
 	 */
-	function niceConfirm(message, opts) {
-		opts = opts || {};
+	function niceChoice(title, bodyHtml, buttons, fallbackText) {
 		return new Promise(function (resolve) {
 			var $ = window.jQuery;
 			var box = document.getElementById('phpbb_confirm');
 			// il contenitore delle finestre di phpBB (sfondo scuro e finestre stanno lì dentro, affiancati)
 			var dark = document.getElementById('darkenwrapper') || (document.getElementById('darken') || {}).parentNode;
+			var usable = buttons.filter(function (b) {
+				return !b.disabled && b.value !== null;
+			});
 			if (!$ || !window.phpbb || typeof window.phpbb.confirm !== 'function' || !box || !dark) {
-				resolve(window.confirm(message));
+				resolve(usable.length && window.confirm(fallbackText) ? usable[0].value : null);
 				return;
 			}
-			var html = '<h3>' + escapeHtml(opts.title || lang('EP_CONFIRM_TITLE')) + '</h3><p>' + escapeHtml(message) + '</p>' +
-				'<fieldset class="submit-buttons"><input type="button" name="confirm" value="' + escapeHtml(opts.yes || lang('EP_YES')) + '" class="button2">&nbsp;' +
-				'<input type="button" name="cancel" value="' + escapeHtml(opts.no || lang('EP_NO')) + '" class="button2"></fieldset>';
+			// Invio sceglie il primo pulsante utilizzabile
+			var enterSet = false;
+			var html = '<h3>' + escapeHtml(title) + '</h3>' + bodyHtml + '<fieldset class="submit-buttons ep-choice-buttons">' +
+				buttons.map(function (b, i) {
+					var name = b.name || '';
+					if (!name && !b.disabled && b.value !== null && !enterSet) {
+						name = 'confirm';
+					}
+					if (name === 'confirm') {
+						enterSet = true;
+					}
+					return '<input type="button" class="button2" data-ep-choice="' + i + '"' + (name ? ' name="' + name + '"' : '') +
+						' value="' + escapeHtml(b.label) + '"' + (b.disabled ? ' disabled="disabled"' : '') + '>';
+				}).join('&nbsp;') + '</fieldset>';
 			// Sopra le finestre di Editor Plus. Lo sfondo di phpBB sta dentro il piè di pagina, e un elemento
-			// non può superare il livello del suo contenitore: lo si porta per il tempo della conferma
+			// non può superare il livello del suo contenitore: lo si porta per il tempo della finestra
 			// direttamente nel corpo della pagina, e poi lo si rimette esattamente dov'era.
 			var home = {parent: dark.parentNode, next: dark.nextSibling};
 			var oldZ = dark.style.zIndex;
 			document.body.appendChild(dark);
 			dark.style.zIndex = '100050';
 			document.documentElement.classList.add('ep-confirm-open');
-			var done = false, seen = false, timer = null;
-			var finish = function (ok) {
+			var chosen = null, done = false, seen = false, timer = null;
+			// quale pulsante è stato premuto (phpBB dice solo "confermato o no")
+			var pick = function (e) {
+				var t = e.target;
+				if (t && t.getAttribute && t.hasAttribute('data-ep-choice') && !t.disabled) {
+					chosen = buttons[+t.getAttribute('data-ep-choice')].value;
+				}
+			};
+			box.addEventListener('click', pick, true);
+			var finish = function () {
 				if (done) {
 					return;
 				}
 				done = true;
 				clearInterval(timer);
+				box.removeEventListener('click', pick, true);
+				$(box).find('input[data-ep-choice]').off('.epchoice');
 				// il segnale si toglie solo dopo che lo stesso tasto (es. Esc) ha finito il suo giro: phpBB lo riceve
-				// per primo e chiude la conferma, ma anche gli altri gestori devono vederla ancora aperta
+				// per primo e chiude la finestra, ma anche gli altri gestori devono vederla ancora aperta
 				setTimeout(function () {
 					document.documentElement.classList.remove('ep-confirm-open');
 				}, 0);
@@ -472,26 +496,48 @@
 						home.parent.insertBefore(dark, home.next && home.next.parentNode === home.parent ? home.next : null);
 					}
 				}, 500);
-				resolve(!!ok);
+				// Con Invio ed Esc phpBB "clicca" il pulsante da sé e avvisa PRIMA che il clic arrivi qui:
+				// la scelta si legge un istante dopo, quando il clic è stato registrato
+				setTimeout(function () {
+					resolve(chosen);
+				}, 0);
 			};
-			window.phpbb.confirm(html, function (ok) {
-				finish(ok);
+			window.phpbb.confirm(html, function () {
+				finish();
 			});
-			// chiusa senza rispondere (clic fuori o sulla X): phpBB non avvisa, vale come "No"
+			// Con Invio phpBB "clicca" il pulsante tramite jQuery e il suo gestore impedisce il clic vero:
+			// la scelta si registra anche con un gestore jQuery sullo stesso pulsante (eseguito dopo il suo)
+			$(box).find('input[data-ep-choice]').on('click.epchoice', function () {
+				if (!this.disabled) {
+					chosen = buttons[+this.getAttribute('data-ep-choice')].value;
+				}
+			});
+			// chiusa senza rispondere (clic fuori o sulla X): phpBB non avvisa, vale come "annulla"
 			timer = setInterval(function () {
 				var visible = $(box).is(':visible');
 				if (visible) {
 					seen = true;
 				} else if (seen && !$(box).is(':animated')) {
-					finish(false);
+					finish();
 				}
 			}, 150);
 			setTimeout(function () {
-				var b = box.querySelector('input[name="cancel"]');
+				var b = box.querySelector('input[name="confirm"]') || box.querySelector('input[name="cancel"]');
 				if (b) {
 					b.focus();
 				}
 			}, 350);
+		});
+	}
+
+	/* conferma Sì/No (1.0.42) */
+	function niceConfirm(message, opts) {
+		opts = opts || {};
+		return niceChoice(opts.title || lang('EP_CONFIRM_TITLE'), '<p>' + escapeHtml(message) + '</p>', [
+			{value: true, label: opts.yes || lang('EP_YES'), name: 'confirm'},
+			{value: null, label: opts.no || lang('EP_NO'), name: 'cancel'}
+		], message).then(function (v) {
+			return v === true;
 		});
 	}
 
@@ -2433,31 +2479,12 @@
 		}, function () {});
 	}
 
-	function uploadFiles(files, pos) {
-		files = Array.prototype.slice.call(files || []);
-		if (!files.length) {
-			return false;
-		}
-		var pics = files.filter(isFolderImage);
-		files = files.filter(function (f) {
-			return !isFolderImage(f);
-		});
-		if (pics.length) {
-			if (!cfg.images.allowed) {
-				toast(cfg.images.reason || lang('EP_IMG_ERR_NO_GROUP'), 'error');
-			} else {
-				loadModule('images', [loadScriptOnce('editorplus_gallery.js')]).then(function (m) {
-					m.upload(pics, pos);
-				}, function () {});
-			}
-			if (!files.length) {
-				return true;
-			}
-		}
+	/* file passati al caricatore degli allegati di phpBB (con [attachment] inserito al punto giusto) */
+	function addAttachments(files, pos) {
 		var up = uploader();
 		if (!up) {
 			toast(lang('EP_UPLOAD_NOT_HERE'), 'error');
-			return true;
+			return;
 		}
 		hookUploader(up);
 		var stamp = Date.now();
@@ -2474,6 +2501,129 @@
 			queued[file.name] = {pos: pos, ui: trayItem(file), id: null};
 			up.addFile(file, file.name);
 		});
+	}
+
+	/* immagini nella cartella dell'utente */
+	function addToFolder(pics, pos) {
+		loadModule('images', [loadScriptOnce('editorplus_gallery.js')]).then(function (m) {
+			m.upload(pics, pos);
+		}, function () {});
+	}
+
+	/*
+	 * Allegati ancora possibili in questo messaggio, secondo phpBB: il suo caricatore conosce il limite
+	 * della sezione (0 = nessun limite: amministratori e moderatori) e gli allegati già presenti.
+	 * @return {room, max} room = Infinity se non c'è limite
+	 */
+	function attachRoom() {
+		var pl = window.phpbb && window.phpbb.plupload;
+		if (pl && typeof pl.maxFiles === 'number') {
+			var used = pl.ids ? pl.ids.length : 0;
+			return pl.maxFiles ? {room: Math.max(0, pl.maxFiles - used), max: pl.maxFiles} : {room: Infinity, max: 0};
+		}
+		if (cfg.attachUnlimited) {
+			return {room: Infinity, max: 0};
+		}
+		var pm = /ucp\.php/.test(location.pathname) && /[?&]i=(pm|ucp_pm)\b/.test(location.search);
+		var max = pm ? cfg.maxAttachPm : cfg.maxAttach;
+		var used2 = document.querySelectorAll('input[name^="attachment_data["][name$="[attach_id]"]').length;
+		return {room: Math.max(0, max - used2), max: max};
+	}
+
+	/*
+	 * 1.0.45: immagini trascinate o incollate (Ctrl+V). Secondo l'impostazione dell'ACP: si chiede ogni volta
+	 * (cartella dell'utente, allegati, annulla), oppure si va sempre in una delle due. Una strada che
+	 * l'utente non può usare compare disattivata, con il motivo.
+	 */
+	function askImageDestination(pics, pos, folderOk, attachOk) {
+		var mode = (cfg.images && cfg.images.dropMode) || 'ask';
+		if (mode === 'folder' && folderOk) {
+			addToFolder(pics, pos);
+			return;
+		}
+		if (mode === 'attach' && attachOk) {
+			addAttachments(pics, pos);
+			return;
+		}
+		if (mode !== 'ask') {
+			// la strada scelta in ACP non è disponibile per questo utente o in questa pagina: si usa l'altra
+			if (folderOk) {
+				addToFolder(pics, pos);
+			} else {
+				addAttachments(pics, pos);
+			}
+			return;
+		}
+		var room = attachRoom();
+		var notes = [];
+		if (!folderOk) {
+			notes.push(cfg.images.reason || lang('EP_IMG_ERR_NO_GROUP'));
+		}
+		if (!attachOk) {
+			notes.push(lang('EP_DROPASK_ATTACH_NO'));
+		} else if (room.room === 0) {
+			notes.push(format(lang('EP_DROPASK_LIMIT_FULL'), room.max));
+		} else if (room.room < pics.length) {
+			notes.push(lang('EP_DROPASK_LIMIT').replace('%1$d', room.room).replace('%2$d', room.max));
+		}
+		var urls = [];
+		var shown = pics.slice(0, 6);
+		var thumbs = shown.map(function (f) {
+			var u = '';
+			try {
+				u = URL.createObjectURL(f);
+				urls.push(u);
+			} catch (e) { /* niente miniatura */ }
+			return '<img src="' + escapeHtml(u) + '" alt="' + escapeHtml(f.name || '') + '">';
+		}).join('') + (pics.length > shown.length ? '<span class="ep-dropask-more">' + escapeHtml(format(lang('EP_DROPASK_MORE'), pics.length - shown.length)) + '</span>' : '');
+		var body = '<div class="ep-dropask-thumbs">' + thumbs + '</div>' +
+			'<p>' + escapeHtml(lang('EP_DROPASK_TEXT')) + '</p>' +
+			'<ul class="ep-dropask-help"><li><strong>' + escapeHtml(lang('EP_DROPASK_FOLDER')) + '</strong>: ' + escapeHtml(lang('EP_DROPASK_FOLDER_HELP')) + '</li>' +
+			'<li><strong>' + escapeHtml(lang('EP_DROPASK_ATTACH')) + '</strong>: ' + escapeHtml(lang('EP_DROPASK_ATTACH_HELP')) + '</li></ul>' +
+			notes.map(function (n) {
+				return '<p class="ep-dropask-note">' + escapeHtml(n) + '</p>';
+			}).join('') +
+			(folderOk ? '<p class="ep-dropask-keys">' + escapeHtml(lang('EP_DROPASK_KEYS')) + '</p>' : '');
+		var title = pics.length === 1 ? lang('EP_DROPASK_TITLE_ONE') : format(lang('EP_DROPASK_TITLE'), pics.length);
+		niceChoice(title, body, [
+			{value: 'folder', label: lang('EP_DROPASK_FOLDER'), disabled: !folderOk},
+			{value: 'attach', label: lang('EP_DROPASK_ATTACH'), disabled: !attachOk || room.room === 0},
+			{value: null, label: lang('EP_DROPASK_CANCEL'), name: 'cancel'}
+		], title).then(function (dest) {
+			urls.forEach(function (u) {
+				URL.revokeObjectURL(u);
+			});
+			if (dest === 'folder') {
+				addToFolder(pics, pos);
+			} else if (dest === 'attach') {
+				addAttachments(pics, pos);
+			}
+			ta.focus();
+		});
+	}
+
+	function uploadFiles(files, pos) {
+		files = Array.prototype.slice.call(files || []);
+		if (!files.length) {
+			return false;
+		}
+		var pics = files.filter(isFolderImage);
+		files = files.filter(function (f) {
+			return !isFolderImage(f);
+		});
+		// gli altri file (PDF, ZIP…) diventano sempre allegati, subito
+		if (files.length) {
+			addAttachments(files, pos);
+		}
+		if (pics.length) {
+			var folderOk = !!cfg.images.allowed;
+			var attachOk = !!uploader();
+			if (!folderOk && !attachOk) {
+				toast(cfg.images.reason || lang('EP_IMG_ERR_NO_GROUP'), 'error');
+				return true;
+			}
+			askImageDestination(pics, pos, folderOk, attachOk);
+		}
 		return true;
 	}
 
@@ -3482,6 +3632,16 @@
 			el('span', {className: 'ep-info-sep', 'aria-hidden': 'true', text: '·'}),
 			el('span', {className: 'ep-info-credits'}, [lang('EP_INFO_CREDITS') + ' ', link])
 		]);
+		// 1.0.47: come tornare al vecchio editor (solo utenti registrati: gli ospiti non hanno un Pannello utente)
+		if (cfg.ucpPrefsUrl) {
+			var parts = lang('EP_INFO_OLD_EDITOR').split('%s');
+			box.appendChild(el('span', {className: 'ep-info-old'}, [
+				el('i', {className: 'fa fa-info-circle', 'aria-hidden': 'true'}),
+				' ' + parts[0],
+				el('a', {href: cfg.ucpPrefsUrl, className: 'ep-info-old-link', text: lang('EP_INFO_OLD_EDITOR_LINK')}),
+				parts[1] || ''
+			]));
+		}
 		bar.parentNode.insertBefore(box, bar);
 		infoLine = {box: box, mode: mode};
 		updateInfo();
@@ -4821,7 +4981,7 @@
 	}
 
 	window.EditorPlus = {
-		version: '1.0.44',
+		version: '1.0.47',
 		status: epState,
 		visual: function () {
 			return typeof wy !== 'undefined' && wy.on && !!wy.editor;

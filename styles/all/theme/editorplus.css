@@ -2844,3 +2844,67 @@ textarea.ep-lf-on::placeholder {
 .ep-printopt-pages.ep-printopt-warn {
 	color: #b3261e;
 }
+
+/* 1.0.45 – finestra di phpBB per le immagini trascinate o incollate */
+#phpbb_confirm .ep-dropask-thumbs {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	margin: 6px 0 8px;
+}
+
+#phpbb_confirm .ep-dropask-thumbs img {
+	width: 64px;
+	height: 64px;
+	object-fit: cover;
+	border-radius: 4px;
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+#phpbb_confirm .ep-dropask-more {
+	font-size: 0.9em;
+	opacity: 0.8;
+}
+
+#phpbb_confirm .ep-dropask-help {
+	margin: 4px 0 6px;
+	padding: 0;
+	list-style: none;
+	font-size: 0.92em;
+}
+
+#phpbb_confirm .ep-dropask-note {
+	margin: 6px 0;
+	padding: 4px 8px;
+	border-left: 3px solid #d39e00;
+	background: rgba(211, 158, 0, 0.1);
+	font-size: 0.92em;
+}
+
+#phpbb_confirm .ep-dropask-keys {
+	margin: 4px 0 0;
+	font-size: 0.82em;
+	opacity: 0.75;
+}
+
+#phpbb_confirm .ep-choice-buttons input[disabled] {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+/* 1.0.47 – riga informativa: come tornare al vecchio editor (a destra, su schermi stretti va a capo) */
+.ep-info .ep-info-old {
+	margin-left: auto;
+}
+
+.ep-info .ep-info-old .fa {
+	margin-right: 2px;
+	opacity: 0.8;
+}
+
+.ep-info .ep-info-old-link {
+	font-weight: bold;
+	text-decoration: underline;
+}

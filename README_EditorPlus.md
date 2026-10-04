@@ -1,6 +1,6 @@
 # Editor Plus per phpBB 3.3
 
-![Versione](https://img.shields.io/badge/versione-1.0.47-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![Licenza](https://img.shields.io/badge/licenza-GPL--2.0-green)
+![Versione](https://img.shields.io/badge/versione-1.0.48-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![Licenza](https://img.shields.io/badge/licenza-GPL--2.0-green)
 
 **Editor Plus** (`salvocortesiano/editorplus`) potenzia la barra di scrittura di phpBB: menu per categoria, combo di immagini, faccine, icone ed emoji, colori con sfumature, anteprima dal vivo, formattazione mentre scrivi, editor visuale, bozze salvate sul server, codice colorato, formule matematiche e chimiche, calcolatrice scientifica, **immagini degli utenti in una cartella personale** (con gestione completa in ACP e nel Pannello utente) e una scheda **Check-up** che controlla da sola che tutto funzioni.
 
@@ -423,6 +423,16 @@ Pannello utente → **Preferenze** → **Editor Plus**. Ogni utente può accende
 - editor visuale;
 - correttore ortografico del browser.
 
+### Ordine delle righe della barra
+
+Ogni utente può cambiare l'ordine delle **righe** della barra (pulsanti, menu per categoria, combo d'immagini):
+
+- **Trascinamento:** a destra di ogni riga c'è la maniglia **✥**; passandoci sopra il cursore diventa quello dello spostamento. Tieni premuto e trascina la riga in su o in giù: le altre si spostano mentre trascini. Funziona anche con il dito, su telefono e tablet.
+- **Tastiera:** con la maniglia selezionata (tasto Tab), le frecce **↑ ↓** spostano la riga.
+- **Memoria:** l'ordine viene salvato nel profilo dell'utente, quindi lo ritrova da qualsiasi browser o dispositivo; per gli ospiti resta nel browser. Ogni utente ha il suo ordine.
+- **Ripristino:** menu **⚙ Opzioni** della barra → *Ripristina l'ordine delle righe*.
+- **Barre:** funziona con la barra di ABBC3 e con quella standard di phpBB (i cui pulsanti principali vengono raccolti in una riga).
+
 ### Usa Editor Plus (sì / no)
 
 È la **prima** preferenza, sempre presente. Con **No** l'utente scrive con la **barra normale** del forum (quella di ABBC3, o quella di phpBB se ABBC3 non c'è), senza le funzioni di Editor Plus: anteprima dal vivo, bozze, immagini nella cartella, formule, stampa e così via. Le altre preferenze valgono quando Editor Plus è attivo.
@@ -787,6 +797,7 @@ ext/salvocortesiano/editorplus/
 | 1.0.45 | **Immagini trascinate o incollate (Ctrl+V): finestra di scelta** di phpBB con miniature e tre pulsanti (nella mia cartella / come allegati / annulla), anche nell'editor visuale; avviso sul limite di allegati di phpBB; impostazione in ACP (chiedi ogni volta / sempre nella cartella / sempre come allegati) · nelle finestre di phpBB, Invio ora sceglie davvero il pulsante principale |
 | 1.0.46 | **Pannello utente → "Usa Editor Plus"**: ogni utente può spegnere Editor Plus per sé e scrivere con la barra normale del forum; una riga sopra la barra porta a riattivarlo. Formule e codice colorato nei messaggi restano visibili |
 | 1.0.47 | Riga informativa: avviso *"Per tornare al vecchio editor puoi disattivare Editor Plus dal tuo Pannello utente: clicca QUI"*, con collegamento diretto alla scheda Editor Plus del Pannello utente (solo utenti registrati) |
+| 1.0.48 | **Righe della barra spostabili**: maniglia ✥ a destra di ogni riga, trascinamento con mouse o dito oppure frecce ↑ ↓, ordine salvato nel profilo dell'utente, ripristino dal menu ⚙ Opzioni; con ABBC3 e con la barra standard di phpBB |
 
 ---
 

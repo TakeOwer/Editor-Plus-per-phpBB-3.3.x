@@ -53,6 +53,24 @@ class prefs_controller
 		}
 
 		$key = $this->request->variable('key', '');
+
+		// 1.0.48: ordine delle righe della barra (testo, non sì/no)
+		if ($key === 'rows')
+		{
+			$rows = $this->request->variable('value', '');
+			if (!helper::valid_rows($rows))
+			{
+				return new JsonResponse(['error' => 'INVALID_VALUE'], 400);
+			}
+			$prefs = helper::user_prefs($this->user->data['user_editorplus']);
+			$prefs['rows'] = $rows;
+			$this->db->sql_query('UPDATE ' . USERS_TABLE . "
+				SET user_editorplus = '" . $this->db->sql_escape(json_encode($prefs)) . "'
+				WHERE user_id = " . (int) $this->user->data['user_id']);
+
+			return new JsonResponse(['saved' => true, 'prefs' => $prefs]);
+		}
+
 		if (!array_key_exists($key, helper::USER_PREFS))
 		{
 			return new JsonResponse(['error' => 'UNKNOWN_KEY'], 400);

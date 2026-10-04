@@ -16,7 +16,7 @@ namespace salvocortesiano\editorplus\core;
 class helper
 {
 	/** Versione dei file JavaScript e CSS attesa (deve coincidere con composer.json) */
-	const VERSION = '1.0.47';
+	const VERSION = '1.0.48';
 
 	/** Interruttori delle funzioni (nome config => valore predefinito) */
 	const TOGGLES = [
@@ -375,6 +375,17 @@ class helper
 	}
 
 	/**
+	 * Ordine delle righe della barra: nomi brevi separati da virgole (es. "menus,main,images"), o vuoto
+	 *
+	 * @param string $rows
+	 * @return bool
+	 */
+	public static function valid_rows($rows)
+	{
+		return $rows === '' || (bool) preg_match('/^[a-z0-9]{1,12}(,[a-z0-9]{1,12}){0,11}$/', $rows);
+	}
+
+	/**
 	 * Preferenze dell'utente (colonna user_editorplus, JSON) completate con i valori predefiniti
 	 *
 	 * @param string $json
@@ -388,6 +399,8 @@ class helper
 		{
 			$prefs[$key] = (is_array($saved) && isset($saved[$key])) ? (int) (bool) $saved[$key] : $default;
 		}
+		// 1.0.48: ordine delle righe della barra scelto dall'utente ("" = ordine di serie)
+		$prefs['rows'] = (is_array($saved) && isset($saved['rows']) && is_string($saved['rows']) && self::valid_rows($saved['rows'])) ? $saved['rows'] : '';
 
 		return $prefs;
 	}

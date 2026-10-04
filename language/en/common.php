@@ -436,4 +436,8 @@ $lang = array_merge($lang, [
 	'EP_USER_OFF_LINK'	=> 'Turn it back on in the User Control Panel',
 	'EP_INFO_OLD_EDITOR'	=> 'To go back to the old editor you can turn Editor Plus off in your User Control Panel: click %s',
 	'EP_INFO_OLD_EDITOR_LINK'	=> 'HERE',
+	'EP_ROW_MOVE'	=> 'Drag to move the row up or down (or arrow keys ↑ ↓)',
+	'EP_ROW_SAVED'	=> 'Row order saved',
+	'EP_ROW_RESET'	=> 'Reset the row order',
+	'EP_ROW_RESET_DONE'	=> 'Row order reset',
 ]);

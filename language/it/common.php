@@ -436,4 +436,8 @@ $lang = array_merge($lang, [
 	'EP_USER_OFF_LINK'	=> 'Riattivalo nel Pannello utente',
 	'EP_INFO_OLD_EDITOR'	=> 'Per tornare al vecchio editor puoi disattivare Editor Plus dal tuo Pannello utente: clicca %s',
 	'EP_INFO_OLD_EDITOR_LINK'	=> 'QUI',
+	'EP_ROW_MOVE'	=> 'Trascina per spostare la riga in su o in giù (oppure frecce ↑ ↓)',
+	'EP_ROW_SAVED'	=> 'Ordine delle righe salvato',
+	'EP_ROW_RESET'	=> 'Ripristina l’ordine delle righe',
+	'EP_ROW_RESET_DONE'	=> 'Ordine delle righe ripristinato',
 ]);

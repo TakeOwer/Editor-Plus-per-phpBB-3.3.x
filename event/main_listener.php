@@ -253,6 +253,8 @@ class main_listener implements EventSubscriberInterface
 			'maxH'		=> (int) $this->config['editorplus_img_max_h'],
 			'types'		=> $images->allowed_types(),
 			'canDelete'	=> !empty($this->config['editorplus_img_user_delete']),
+			// immagini trascinate o incollate: ask = chiedi ogni volta, folder = cartella, attach = allegati
+			'dropMode'	=> in_array($this->config['editorplus_img_drop_mode'], ['ask', 'folder', 'attach'], true) ? $this->config['editorplus_img_drop_mode'] : 'ask',
 			'uploadUrl'	=> $upload,
 			'listUrl'	=> $list,
 			'deleteUrl'	=> $delete,
@@ -334,6 +336,18 @@ class main_listener implements EventSubscriberInterface
 		// I bot non scrivono: per loro niente editor (e niente letture e calcoli inutili su ogni pagina)
 		if (!empty($this->user->data['is_bot']))
 		{
+			return;
+		}
+
+		// L'utente ha spento Editor Plus nel Pannello utente: resta la barra normale (ABBC3 o phpBB),
+		// con una riga discreta per riattivarlo. Formule e codice colorato nei messaggi restano visibili.
+		$own = helper::user_prefs(isset($this->user->data['user_editorplus']) ? $this->user->data['user_editorplus'] : '');
+		if (empty($own['enabled']))
+		{
+			$this->template->assign_vars([
+				'S_EDITORPLUS_USER_OFF'	=> true,
+				'U_EDITORPLUS_UCP'		=> append_sid($this->root_path . 'ucp.php', 'i=-salvocortesiano-editorplus-ucp-main_module&mode=prefs'),
+			]);
 			return;
 		}
 
@@ -452,6 +466,12 @@ class main_listener implements EventSubscriberInterface
 			'assetsVersion'	=> (int) $this->config['assets_version'],
 			'uploadMax'		=> (int) $this->config['max_filesize'],
 			'isGuest'		=> $this->user->data['user_id'] == ANONYMOUS,
+			// 1.0.47: riga informativa, "per tornare al vecchio editor…": scheda Editor Plus del Pannello utente
+			'ucpPrefsUrl'	=> $this->user->data['user_id'] != ANONYMOUS ? append_sid($this->root_path . 'ucp.php', 'i=-salvocortesiano-editorplus-ucp-main_module&mode=prefs', false) : '',
+			// limite di allegati per messaggio (amministratori e moderatori globali non ce l'hanno)
+			'maxAttach'		=> (int) $this->config['max_attachments'],
+			'maxAttachPm'	=> (int) $this->config['max_attachments_pm'],
+			'attachUnlimited'	=> $this->attach_unlimited(),
 			'images'		=> ($this->user->data['user_id'] != ANONYMOUS) ? $this->images_config() : ['enabled' => false],
 		];
 
@@ -605,6 +625,13 @@ class main_listener implements EventSubscriberInterface
 	/**
 	 * @return bool
 	 */
+	protected function attach_unlimited()
+	{
+		global $auth;
+
+		return isset($auth) && ($auth->acl_get('a_') || $auth->acl_get('m_'));
+	}
+
 	protected function is_admin()
 	{
 		global $auth;

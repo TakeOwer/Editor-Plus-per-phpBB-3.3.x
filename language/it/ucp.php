@@ -58,4 +58,6 @@ $lang = array_merge($lang, [
 	'UCP_EDITORPLUS_IMG_NONE'	=> 'Non hai ancora caricato immagini.',
 	'UCP_EDITORPLUS_IMG_SPACE'	=> 'Spazio usato',
 	'UCP_EDITORPLUS_IMG_LIMITS'	=> 'Peso massimo per immagine: %s',
+	'UCP_EDITORPLUS_ENABLED'	=> 'Usa Editor Plus',
+	'UCP_EDITORPLUS_ENABLED_EXPLAIN'	=> 'Con “No” scrivi con la barra normale del forum, senza le funzioni di Editor Plus (anteprima dal vivo, bozze, immagini, formule, stampa…). Le formule e il codice colorato nei messaggi degli altri restano visibili. Puoi riattivarlo qui quando vuoi; le altre preferenze qui sotto valgono quando Editor Plus è attivo.',
 ]);

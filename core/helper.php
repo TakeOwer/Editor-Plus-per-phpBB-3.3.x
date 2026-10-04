@@ -16,7 +16,7 @@ namespace salvocortesiano\editorplus\core;
 class helper
 {
 	/** Versione dei file JavaScript e CSS attesa (deve coincidere con composer.json) */
-	const VERSION = '1.0.44';
+	const VERSION = '1.0.47';
 
 	/** Interruttori delle funzioni (nome config => valore predefinito) */
 	const TOGGLES = [
@@ -60,6 +60,8 @@ class helper
 	 * Valgono solo se la funzione è accesa anche in ACP.
 	 */
 	const USER_PREFS = [
+		// 1.0.46: l'utente può spegnere Editor Plus per sé (resta la barra normale di ABBC3 o di phpBB)
+		'enabled'		=> 1,
 		'autosave'		=> 1,
 		'autogrow'		=> 1,
 		'counter'		=> 1,

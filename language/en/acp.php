@@ -566,4 +566,9 @@ $lang = array_merge($lang, [
 	'EDITORPLUS_IMG_NEED_POST'	=> 'A writing permission is also required',
 	'EDITORPLUS_IMG_NEED_POST_EXPLAIN'	=> 'Besides an allowed group, the user must be able to write in at least one way (new topics or replies in a forum, private messages, signature). Stops the board becoming an image host for people who do not post.',
 	'EDITORPLUS_CONFIRM_TITLE'	=> 'Confirm request',
+	'EDITORPLUS_IMG_DROP_MODE'	=> 'Images dropped or pasted into the editor',
+	'EDITORPLUS_IMG_DROP_MODE_EXPLAIN'	=> 'What happens when a user drops or pastes (Ctrl+V) one or more images into the editor. With “Ask every time” a window offers three choices: into the user’s folder, as phpBB attachments, cancel. The “Upload images” button of the images window asks nothing. Other files (PDF, ZIP…) always become attachments.',
+	'EDITORPLUS_IMG_DROP_ASK'	=> 'Ask every time',
+	'EDITORPLUS_IMG_DROP_FOLDER'	=> 'Always into the user’s folder',
+	'EDITORPLUS_IMG_DROP_ATTACH'	=> 'Always as phpBB attachments',
 ]);

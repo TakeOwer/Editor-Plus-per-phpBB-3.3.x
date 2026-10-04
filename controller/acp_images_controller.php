@@ -414,6 +414,7 @@ class acp_images_controller
 			'S_IMG_USER_DELETE'		=> !empty($this->config['editorplus_img_user_delete']),
 			'IMG_DELETE_WITH_USER'		=> (int) $this->config['editorplus_img_delete_with_user'],
 			'S_IMG_NEED_POST'			=> !empty($this->config['editorplus_img_need_post']),
+			'IMG_DROP_MODE'				=> (string) $this->config['editorplus_img_drop_mode'],
 			'IMG_PHP_LIMIT'			=> $php_limit ? get_formatted_filesize($php_limit) : $this->language->lang('EDITORPLUS_IMG_UNLIMITED'),
 			'S_IMG_GD'				=> function_exists('imagecreatetruecolor'),
 			'IMG_LINK_EXAMPLE_DIRECT'	=> $this->images->url('mario_rossi_123', 'tramonto-a1b2c3.jpg', false, 'direct'),
@@ -437,6 +438,8 @@ class acp_images_controller
 		$this->config->set('editorplus_img_user_delete', $this->request->variable('editorplus_img_user_delete', 0) ? 1 : 0);
 		$this->config->set('editorplus_img_delete_with_user', min(2, max(0, $this->request->variable('editorplus_img_delete_with_user', 1))));
 		$this->config->set('editorplus_img_need_post', $this->request->variable('editorplus_img_need_post', 0) ? 1 : 0);
+		$drop = $this->request->variable('editorplus_img_drop_mode', 'ask');
+		$this->config->set('editorplus_img_drop_mode', in_array($drop, ['ask', 'folder', 'attach'], true) ? $drop : 'ask');
 
 		$modes = $this->request->variable('grp_mode', [0 => '']);
 		$sizes = $this->request->variable('grp_size', [0 => 0]);

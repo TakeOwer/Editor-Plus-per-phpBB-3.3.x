@@ -100,6 +100,16 @@
 			</dd>
 		</dl>
 		<dl>
+			<dt><label for="editorplus_img_drop_mode">{{ lang('EDITORPLUS_IMG_DROP_MODE') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_DROP_MODE_EXPLAIN') }}</span></dt>
+			<dd>
+				<select name="editorplus_img_drop_mode" id="editorplus_img_drop_mode">
+					<option value="ask"{% if IMG_DROP_MODE != 'folder' and IMG_DROP_MODE != 'attach' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_DROP_ASK') }}</option>
+					<option value="folder"{% if IMG_DROP_MODE == 'folder' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_DROP_FOLDER') }}</option>
+					<option value="attach"{% if IMG_DROP_MODE == 'attach' %} selected="selected"{% endif %}>{{ lang('EDITORPLUS_IMG_DROP_ATTACH') }}</option>
+				</select>
+			</dd>
+		</dl>
+		<dl>
 			<dt><label for="editorplus_img_need_post">{{ lang('EDITORPLUS_IMG_NEED_POST') ~ lang('COLON') }}</label><br><span>{{ lang('EDITORPLUS_IMG_NEED_POST_EXPLAIN') }}</span></dt>
 			<dd>
 				<label><input type="radio" class="radio" name="editorplus_img_need_post" id="editorplus_img_need_post" value="1"{% if S_IMG_NEED_POST %} checked="checked"{% endif %}> {{ lang('YES') }}</label>

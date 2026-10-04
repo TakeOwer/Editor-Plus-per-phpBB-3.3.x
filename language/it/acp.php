@@ -566,4 +566,9 @@ $lang = array_merge($lang, [
 	'EDITORPLUS_IMG_NEED_POST'	=> 'Serve anche un permesso per scrivere',
 	'EDITORPLUS_IMG_NEED_POST_EXPLAIN'	=> 'Oltre al gruppo autorizzato, l’utente deve poter scrivere almeno in un modo (aprire argomenti o rispondere in una sezione, messaggi privati, firma). Evita che il forum diventi un hosting di immagini per chi non scrive.',
 	'EDITORPLUS_CONFIRM_TITLE'	=> 'Conferma richiesta',
+	'EDITORPLUS_IMG_DROP_MODE'	=> 'Immagini trascinate o incollate nell’editor',
+	'EDITORPLUS_IMG_DROP_MODE_EXPLAIN'	=> 'Cosa succede quando un utente trascina o incolla (Ctrl+V) una o più immagini nell’editor. Con “Chiedi ogni volta” compare una finestra con tre scelte: nella cartella dell’utente, come allegati di phpBB, annulla. Il pulsante “Carica immagini” della finestra delle immagini non chiede nulla. Gli altri file (PDF, ZIP…) diventano sempre allegati.',
+	'EDITORPLUS_IMG_DROP_ASK'	=> 'Chiedi ogni volta',
+	'EDITORPLUS_IMG_DROP_FOLDER'	=> 'Sempre nella cartella dell’utente',
+	'EDITORPLUS_IMG_DROP_ATTACH'	=> 'Sempre come allegati di phpBB',
 ]);

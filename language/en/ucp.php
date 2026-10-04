@@ -58,4 +58,6 @@ $lang = array_merge($lang, [
 	'UCP_EDITORPLUS_IMG_NONE'	=> 'You have not uploaded any images yet.',
 	'UCP_EDITORPLUS_IMG_SPACE'	=> 'Space used',
 	'UCP_EDITORPLUS_IMG_LIMITS'	=> 'Maximum size per image: %s',
+	'UCP_EDITORPLUS_ENABLED'	=> 'Use Editor Plus',
+	'UCP_EDITORPLUS_ENABLED_EXPLAIN'	=> 'With “No” you write with the board’s normal toolbar, without the Editor Plus features (live preview, drafts, images, formulas, printing…). Formulas and highlighted code in other people’s posts stay visible. You can turn it back on here at any time; the other preferences below apply when Editor Plus is on.',
 ]);

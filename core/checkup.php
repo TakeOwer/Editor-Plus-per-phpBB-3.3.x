@@ -38,6 +38,7 @@ class checkup
 		'1.0.37'	=> 'editorplus_cleanup',
 		'1.0.38'	=> 'editorplus_images',
 		'1.0.39'	=> 'editorplus_img_need_post',
+		'1.0.45'	=> 'editorplus_img_drop_mode',
 	];
 
 	/** File senza i quali una parte dell'estensione non funziona */

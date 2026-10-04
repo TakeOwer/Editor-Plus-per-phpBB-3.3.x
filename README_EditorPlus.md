@@ -1,6 +1,6 @@
 # Editor Plus per phpBB 3.3
 
-![Versione](https://img.shields.io/badge/versione-1.0.44-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![Licenza](https://img.shields.io/badge/licenza-GPL--2.0-green)
+![Versione](https://img.shields.io/badge/versione-1.0.47-blue) ![phpBB](https://img.shields.io/badge/phpBB-3.3.x-teal) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![Licenza](https://img.shields.io/badge/licenza-GPL--2.0-green)
 
 **Editor Plus** (`salvocortesiano/editorplus`) potenzia la barra di scrittura di phpBB: menu per categoria, combo di immagini, faccine, icone ed emoji, colori con sfumature, anteprima dal vivo, formattazione mentre scrivi, editor visuale, bozze salvate sul server, codice colorato, formule matematiche e chimiche, calcolatrice scientifica, **immagini degli utenti in una cartella personale** (con gestione completa in ACP e nel Pannello utente) e una scheda **Check-up** che controlla da sola che tutto funzioni.
 
@@ -423,13 +423,22 @@ Pannello utente → **Preferenze** → **Editor Plus**. Ogni utente può accende
 - editor visuale;
 - correttore ortografico del browser.
 
+### Usa Editor Plus (sì / no)
+
+È la **prima** preferenza, sempre presente. Con **No** l'utente scrive con la **barra normale** del forum (quella di ABBC3, o quella di phpBB se ABBC3 non c'è), senza le funzioni di Editor Plus: anteprima dal vivo, bozze, immagini nella cartella, formule, stampa e così via. Le altre preferenze valgono quando Editor Plus è attivo.
+
+- **Come lo scopre:** nella riga informativa sopra la barra di Editor Plus (se accesa in ACP), a destra, gli utenti registrati leggono *"Per tornare al vecchio editor puoi disattivare Editor Plus dal tuo Pannello utente: clicca QUI"*; **QUI** apre direttamente la scheda **Editor Plus** del Pannello utente.
+- **Riattivarlo:** sopra la barra normale compare una riga discreta, *"Editor Plus è disattivato per te · Riattivalo nel Pannello utente"*, con il collegamento diretto alla pagina delle preferenze.
+- **Lettura:** formule e codice colorato **nei messaggi** restano visibili, perché riguardano la lettura e non la scrittura.
+- **Solo per sé:** la scelta vale solo per quell'utente; gli altri non sono toccati.
+
 Le opzioni del menu **⚙ Opzioni** della barra si salvano subito nel profilo, senza ricaricare la pagina.
 
 ---
 
 ## 15. Immagini degli utenti (cartella personale)
 
-Dalla **1.0.38** le immagini che un utente trascina nell'area di testo, incolla con Ctrl+V o sceglie con il pulsante 🖼 **Le mie immagini** non diventano più allegati: finiscono nella **sua cartella personale** dentro la cartella degli allegati di phpBB (di solito `files/`), e nel messaggio entra il BBCode `[img]`. Tutti gli altri file (zip, pdf…) restano **allegati di phpBB**, come prima.
+Dalla **1.0.38** le immagini possono finire nella **cartella personale** dell'utente, dentro la cartella degli allegati di phpBB (di solito `files/`), con il BBCode `[img]` nel messaggio. Quelle scelte con il pulsante 🖼 **Le mie immagini** vanno sempre lì; per quelle **trascinate o incollate con Ctrl+V**, dalla **1.0.45** una finestra chiede ogni volta se metterle nella cartella o come allegati di phpBB (impostabile in ACP: vedi "Immagini trascinate o incollate: dove vanno"). Tutti gli altri file (zip, pdf…) restano **allegati di phpBB**, come prima.
 
 ### La cartella dell'utente
 
@@ -496,6 +505,22 @@ Ogni cancellazione chiede conferma e finisce nel **registro amministrazione**.
 
 - **Link diretto alla cartella** (di serie): `https://forum/files/mario_rossi_58/foto-a1b2c3.jpg`. Il server manda il file da solo: il modo più leggero.
 - **Tramite l'estensione**: `https://forum/app.php/editorplus/img/mario_rossi_58/foto-a1b2c3.jpg`. Il file passa da phpBB. Serve solo se il server **ignora** il `.htaccess` della sottocartella. Il **Check-up** lo prova dal vivo; se scegli questo tipo, vale per le immagini caricate da quel momento (quelle con link diretto continuano a funzionare se il server le apre).
+
+### Immagini trascinate o incollate: dove vanno
+
+Quando trascini o incolli (**Ctrl+V**) una o più immagini nell'editor (anche nell'editor visuale), compare la **finestra di conferma di phpBB**, con l'aspetto dello stile del forum: titolo con il numero di immagini, le loro **miniature** e tre pulsanti.
+
+| Pulsante | Cosa succede |
+|---|---|
+| **Nella mia cartella** (anche con **Invio**) | le immagini vanno in `files/nome_ID/` e nel messaggio viene inserito il link `[img]` |
+| **Come allegati** | diventano allegati di phpBB del messaggio, con `[attachment]` |
+| **Annulla** (anche con **Esc** o clic fuori) | non viene caricato nulla |
+
+- **Più immagini insieme:** vengono caricate una alla volta, nell'ordine in cui le hai trascinate, ognuna con la sua barra di avanzamento.
+- **Gli altri file** (ZIP, PDF…): diventano sempre allegati, subito; la domanda riguarda solo le immagini.
+- **Limite degli allegati di phpBB** (ACP → Messaggi → Impostazioni allegati, di serie 3 per messaggio; amministratori e moderatori non hanno limite): la finestra avvisa prima ("puoi allegarne ancora 1"), e se il limite è già raggiunto "Come allegati" è disattivato.
+- **Strada non disponibile:** se l'utente non può caricare nella cartella, o la pagina non accetta allegati, quel pulsante è disattivato e la finestra dice il motivo.
+- **ACP → Immagini utenti → "Immagini trascinate o incollate nell'editor":** *Chiedi ogni volta* (di serie), *Sempre nella cartella dell'utente*, *Sempre come allegati di phpBB*. Il pulsante "Carica immagini" della finestra delle immagini non chiede nulla.
 
 ### Immagine eliminata dall'editor
 
@@ -692,7 +717,7 @@ ext/salvocortesiano/editorplus/
 ├── cron/task/              pulizia automatica giornaliera
 ├── event/                  collegamento con phpBB (barra, BBCode, pagine)
 ├── language/it, en/        tutti i testi (italiano e inglese)
-├── migrations/             aggiornamenti del database, dalla 1.0.0 alla 1.0.43
+├── migrations/             aggiornamenti del database, dalla 1.0.0 alla 1.0.45
 ├── styles/all/template/    barra, finestre e script:
 │   ├── js/editorplus.js          la barra e gli strumenti di base
 │   ├── js/editorplus_mod_*.js    moduli scaricati solo al primo uso:
@@ -759,6 +784,9 @@ ext/salvocortesiano/editorplus/
 | 1.0.42 | Tutte le conferme dell'estensione usano la **finestra di conferma integrata di phpBB** (stesso aspetto dello stile del forum e dell'ACP) invece del riquadro del browser: eliminazione di un'immagine dall'editor (anche dall'ingrandimento), ripristino di KaTeX e scaricamento di una nuova serie nel Check-up. Esc, "No" e il clic fuori annullano senza chiudere la finestra sottostante |
 | 1.0.43 | Registro amministratori: le voci "Modulo aggiunto" dei moduli del Pannello utente mostravano il segnaposto (`UCP_EDITORPLUS_IMAGES`, `UCP_EDITORPLUS_TITLE`) invece del nome. Ora i nomi sono tradotti anche nell'ACP, e l'aggiornamento corregge le voci già presenti nel registro (nella lingua predefinita del forum) |
 | 1.0.44 | **Correzione importante:** se la cache delle rotte di phpBB non conteneva gli indirizzi di Editor Plus (per esempio durante un aggiornamento dell'estensione), **ogni pagina del forum** cadeva con l'errore fatale "Unable to generate a URL for the named route salvocortesiano_editorplus_render". Ora la pagina funziona sempre: in quel caso Editor Plus non si attiva e resta l'editor di phpBB, finché la cache non viene rigenerata · ai bot (motori di ricerca) l'editor non viene più preparato: meno lavoro su ogni pagina che visitano |
+| 1.0.45 | **Immagini trascinate o incollate (Ctrl+V): finestra di scelta** di phpBB con miniature e tre pulsanti (nella mia cartella / come allegati / annulla), anche nell'editor visuale; avviso sul limite di allegati di phpBB; impostazione in ACP (chiedi ogni volta / sempre nella cartella / sempre come allegati) · nelle finestre di phpBB, Invio ora sceglie davvero il pulsante principale |
+| 1.0.46 | **Pannello utente → "Usa Editor Plus"**: ogni utente può spegnere Editor Plus per sé e scrivere con la barra normale del forum; una riga sopra la barra porta a riattivarlo. Formule e codice colorato nei messaggi restano visibili |
+| 1.0.47 | Riga informativa: avviso *"Per tornare al vecchio editor puoi disattivare Editor Plus dal tuo Pannello utente: clicca QUI"*, con collegamento diretto alla scheda Editor Plus del Pannello utente (solo utenti registrati) |
 
 ---
 

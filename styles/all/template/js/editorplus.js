@@ -89,7 +89,7 @@
 	}
 
 	var cfg = window.EditorPlusConfig || {};
-	var epState = {version: '1.0.47', ready: false, config: !!(cfg && cfg.features), errors: []};
+	var epState = {version: '1.0.48', ready: false, config: !!(cfg && cfg.features), errors: []};
 
 	function report(step, err) {
 		epState.errors.push(step + ': ' + (err && err.message ? err.message : err));
@@ -3563,9 +3563,22 @@
 				wyOff();
 			}
 		}, !!admin.wysiwyg && !!window.sceditor);
+		// 1.0.48: ordine delle righe della barra di nuovo come di serie
+		var rowsReset = null;
+		if (rowOrder) {
+			rowsReset = el('button', {type: 'button', className: 'ep-btn ep-btn-light ep-opt-rows-reset'}, [el('i', {className: 'fa fa-undo', 'aria-hidden': 'true'}), ' ' + lang('EP_ROW_RESET')]);
+			rowsReset.addEventListener('click', function () {
+				rowOrder.reset();
+				rowsReset.disabled = true;
+			});
+			pop.appendChild(rowsReset);
+		}
 		pop.appendChild(el('p', {className: 'ep-opt-note', text: lang('EP_OPT_NOTE')}));
 
 		function refreshRows() {
+			if (rowsReset) {
+				rowsReset.disabled = !rowOrder.custom();
+			}
 			rows.forEach(function (r) {
 				if (r.key === 'lf_marks') {
 					r.el.classList.toggle('ep-opt-off', !prefOn('live_format', true));
@@ -3616,6 +3629,188 @@
 		infoLine.mode.textContent = (visual ? lang('EP_INFO_MODE_VISUAL') : lang('EP_INFO_MODE_BBCODE')) +
 			' (' + (coreBar ? lang('EP_INFO_BAR_CORE') : lang('EP_INFO_BAR_ABBC3')) + ')';
 		infoLine.box.classList.toggle('ep-info-visual', visual);
+	}
+
+	/* ------------------------------------------------------------------ */
+	/* 1.0.48: ordine delle righe della barra scelto dall'utente: maniglia   */
+	/* ✥ a destra di ogni riga (trascinamento con mouse o dito, oppure       */
+	/* frecce su/giù), ordine salvato nel profilo (ospiti: nel browser).     */
+	/* Applicato per ultimo, quando la barra è completa.                     */
+	/* ------------------------------------------------------------------ */
+
+	var ROWS_KEY = 'editorplus:rows';
+	var rowOrder = null;
+
+	function rowKey(r) {
+		if (r.classList.contains('ep-cat-row') || r.classList.contains('ep-core-menus')) {
+			return 'menus';
+		}
+		if (r.classList.contains('ep-img-combos')) {
+			return 'images';
+		}
+		return r.getAttribute('data-ep-row') || 'main';
+	}
+
+	function barRows() {
+		return Array.prototype.filter.call(bar.children, function (c) {
+			return c.classList && (c.classList.contains('abbc3_buttons_row') || c.classList.contains('ep-core-main') || c.classList.contains('ep-core-menus'));
+		});
+	}
+
+	function currentOrder() {
+		return barRows().map(rowKey).join(',');
+	}
+
+	function applyRowOrder(order) {
+		var rows = barRows();
+		if (rows.length < 2) {
+			return;
+		}
+		var wanted = String(order || '').split(',').map(function (k) {
+			return rows.filter(function (r) {
+				return rowKey(r) === k;
+			})[0];
+		}).filter(Boolean);
+		rows.forEach(function (r) {
+			if (wanted.indexOf(r) === -1) {
+				wanted.push(r);
+			}
+		});
+		var ref = rows[rows.length - 1].nextSibling;
+		wanted.forEach(function (r) {
+			bar.insertBefore(r, ref);
+		});
+	}
+
+	function saveRowOrder(value, quiet) {
+		prefs.rows = value;
+		storeSet(ROWS_KEY, value);
+		if (!quiet) {
+			toast(lang(value ? 'EP_ROW_SAVED' : 'EP_ROW_RESET_DONE'), 'ok');
+		}
+		if (cfg.isGuest || !cfg.prefsUrl) {
+			return;
+		}
+		var fd = new FormData();
+		fd.append('hash', cfg.prefsHash || '');
+		fd.append('key', 'rows');
+		fd.append('value', value);
+		fetch(cfg.prefsUrl, {method: 'POST', body: fd, credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'}}).catch(function () { /* resta salvato nel browser */ });
+	}
+
+	function setupRowOrder() {
+		// barra standard di phpBB: i pulsanti principali sono sparsi nella barra; li si raccoglie in una riga
+		if (coreBar && bar.querySelector(':scope > .ep-core-menus, :scope > .ep-img-combos') && !bar.querySelector(':scope > .ep-core-main')) {
+			var lead = Array.prototype.filter.call(bar.childNodes, function (n) {
+				return !(n.nodeType === 1 && (n.classList.contains('ep-core-menus') || n.classList.contains('ep-img-combos') || n.classList.contains('abbc3_buttons_row')));
+			});
+			if (lead.length) {
+				var main = el('div', {className: 'ep-core-main'});
+				bar.insertBefore(main, lead[0]);
+				lead.forEach(function (n) {
+					main.appendChild(n);
+				});
+			}
+		}
+		var rows = barRows();
+		if (rows.length < 2) {
+			return;
+		}
+		// più righe di pulsanti di ABBC3: main, main2, main3…
+		var plain = 0;
+		rows.forEach(function (r) {
+			if (rowKey(r) === 'main' && !r.classList.contains('ep-core-main')) {
+				plain++;
+				if (plain > 1) {
+					r.setAttribute('data-ep-row', 'main' + plain);
+				}
+			}
+		});
+		var defaults = currentOrder();
+		var saved = cfg.isGuest ? storeGet(ROWS_KEY, '') : (typeof prefs.rows === 'string' ? prefs.rows : '');
+		if (saved) {
+			applyRowOrder(saved);
+		}
+
+		rows.forEach(function (r) {
+			r.classList.add('ep-row');
+			var h = el('span', {className: 'ep-row-handle', role: 'button', tabindex: '0', title: lang('EP_ROW_MOVE'), 'aria-label': lang('EP_ROW_MOVE')}, [
+				el('i', {className: 'fa fa-arrows', 'aria-hidden': 'true'})
+			]);
+			r.appendChild(h);
+
+			h.addEventListener('pointerdown', function (e) {
+				if (e.button !== 0) {
+					return;
+				}
+				e.preventDefault();
+				var start = currentOrder();
+				r.classList.add('ep-row-dragging');
+				bar.classList.add('ep-rows-sorting');
+				var move = function (ev) {
+					var y = ev.clientY;
+					var list = barRows();
+					var i = list.indexOf(r);
+					var prev = list[i - 1], next = list[i + 1];
+					if (prev) {
+						var pr = prev.getBoundingClientRect();
+						if (y < pr.top + pr.height / 2) {
+							bar.insertBefore(r, prev);
+							return;
+						}
+					}
+					if (next) {
+						var nr = next.getBoundingClientRect();
+						if (y > nr.top + nr.height / 2) {
+							bar.insertBefore(next, r);
+						}
+					}
+				};
+				var up = function () {
+					document.removeEventListener('pointermove', move);
+					document.removeEventListener('pointerup', up);
+					document.removeEventListener('pointercancel', up);
+					r.classList.remove('ep-row-dragging');
+					bar.classList.remove('ep-rows-sorting');
+					var now = currentOrder();
+					if (now !== start) {
+						saveRowOrder(now === defaults ? '' : now);
+					}
+				};
+				document.addEventListener('pointermove', move);
+				document.addEventListener('pointerup', up);
+				document.addEventListener('pointercancel', up);
+			});
+
+			h.addEventListener('keydown', function (e) {
+				if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
+					return;
+				}
+				e.preventDefault();
+				var list = barRows();
+				var i = list.indexOf(r);
+				if (e.key === 'ArrowUp' && list[i - 1]) {
+					bar.insertBefore(r, list[i - 1]);
+				} else if (e.key === 'ArrowDown' && list[i + 1]) {
+					bar.insertBefore(list[i + 1], r);
+				} else {
+					return;
+				}
+				h.focus();
+				var now = currentOrder();
+				saveRowOrder(now === defaults ? '' : now);
+			});
+		});
+
+		rowOrder = {
+			reset: function () {
+				applyRowOrder(defaults);
+				saveRowOrder('');
+			},
+			custom: function () {
+				return currentOrder() !== defaults;
+			}
+		};
 	}
 
 	function setupInfo() {
@@ -4949,6 +5144,7 @@
 	safely('menu opzioni', setupOptions);
 	safely('riga informativa', setupInfo);
 	safely('stile dei menu a tendina', setupSelectSkin);
+	safely('ordine delle righe', setupRowOrder);
 
 	changeListeners.push(updateCounter, autogrow, scheduleDraft, function () {
 		refreshLive(false);
@@ -4981,7 +5177,7 @@
 	}
 
 	window.EditorPlus = {
-		version: '1.0.47',
+		version: '1.0.48',
 		status: epState,
 		visual: function () {
 			return typeof wy !== 'undefined' && wy.on && !!wy.editor;

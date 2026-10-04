@@ -2908,3 +2908,80 @@ textarea.ep-lf-on::placeholder {
 	font-weight: bold;
 	text-decoration: underline;
 }
+
+/* 1.0.48 – righe della barra spostabili: maniglia a destra di ogni riga */
+.ep-bar .ep-row,
+:is(#abbc3_buttons, #format-buttons, .ep-bar) > .ep-row,
+#main #abbc3_buttons .abbc3_buttons_row.ep-row {
+	position: relative;
+	padding-right: 26px;
+}
+
+.ep-bar .ep-core-main {
+	display: block;
+}
+
+.ep-row-handle {
+	position: absolute;
+	top: 50%;
+	right: 3px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 22px;
+	margin-top: -11px;
+	border-radius: 4px;
+	color: #6b7884;
+	font-size: 13px;
+	line-height: 1;
+	cursor: move;
+	opacity: 0.4;
+	touch-action: none;
+	user-select: none;
+	-webkit-user-select: none;
+	transition: opacity 0.15s, background-color 0.15s;
+}
+
+.ep-row:hover > .ep-row-handle,
+.ep-row-handle:focus {
+	opacity: 1;
+}
+
+.ep-row-handle:hover,
+.ep-row-handle:focus {
+	color: #105289;
+	background-color: rgba(16, 82, 137, 0.1);
+	outline: none;
+}
+
+.ep-row-handle:focus-visible {
+	box-shadow: 0 0 0 2px #105289;
+}
+
+@media (hover: none) {
+	.ep-row-handle {
+		opacity: 0.75;
+	}
+}
+
+.ep-rows-sorting,
+.ep-rows-sorting * {
+	cursor: move !important;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.ep-bar .ep-row.ep-row-dragging {
+	z-index: 2;
+	outline: 2px dashed #3d8fd1;
+	outline-offset: -2px;
+	background-color: rgba(61, 143, 209, 0.12);
+	box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18);
+}
+
+.ep-opt-rows-reset {
+	display: block;
+	width: 100%;
+	margin: 6px 0 2px;
+}
